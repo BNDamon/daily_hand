@@ -59,6 +59,23 @@
         padding: 0 4px;
         border-radius: 2px;
     }
+    @media (max-width: 600px) {
+    .memo-paper {
+        width: 95%; /* Take up most of the width */
+        padding: 20px; /* Reduce padding to give text more room */
+        transform: rotate(0deg); /* Straighten it out for better legibility on small screens */
+    }
+    
+    .memo-item {
+        padding: 10px;
+        font-size: 0.8rem; /* Slightly smaller text to prevent wrapping issues */
+    }
+
+    .stamp-button {
+        padding: 20px; /* Bigger tap target for thumbs */
+        font-size: 1.2rem;
+    }
+    }
         
     /* --- 2. TITLE CARD --- */
     .title-card {

@@ -625,15 +625,21 @@ function checkTutorial() {
     const modal = document.getElementById('tutorial-modal');
     const btn = document.getElementById('btn-close-tutorial');
 
-    if (!tutorialSeen) {
+    if (!tutorialSeen && modal) {
         modal.classList.remove('hidden'); 
         
-        btn.onclick = () => {
+        // ADD BOTH CLICK AND TOUCHSTART FOR MOBILE RESPONSIVENESS
+        const closeAction = (e) => {
+            e.preventDefault(); // Prevents double-triggering
             playSound('thud'); 
             modal.classList.add('hidden'); 
-            localStorage.setItem('tutorialSeen', 'true'); // Save to phone
+            localStorage.setItem('tutorialSeen', 'true');
         };
-    } else {
+
+        btn.addEventListener('click', closeAction);
+        btn.addEventListener('touchstart', closeAction);
+        
+    } else if (modal) {
         modal.classList.add('hidden');
     }
 }
