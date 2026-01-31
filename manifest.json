@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "The Daily Tab",
+  "version": "1.0",
+  "description": "Streamlined news from RSS feeds.",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://feeds.bbci.co.uk/*",
+    "https://rss.nytimes.com/*",
+    "https://www.theverge.com/*"
+  ]
+}
