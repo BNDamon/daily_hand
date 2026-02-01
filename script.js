@@ -153,12 +153,10 @@ function playFeedbackSound(isPositive) {
 // 3. INITIALIZATION
 async function init() {
     const savedData = localStorage.getItem('gameState');
-    const tutorialData = localStorage.getItem('tutorialSeen');
     const highScoreData = localStorage.getItem('highScore');
 
     if (savedData) {
         const parsed = JSON.parse(savedData);
-        // Load existing progress
         state.xp = parsed.xp || 0;
         state.inventory = parsed.inventory || [];
         state.pinnedArticle = parsed.pinnedArticle || null;
@@ -174,16 +172,21 @@ async function init() {
     state.articlesRead = 0;
     state.combo = 0;
     state.isGameOver = false;
+    
+    // Set Goal Target based on difficulty
+    const difficultyMultiplier = Math.floor(state.xp / 2000);
+    state.goalTarget = 5 + (difficultyMultiplier * 3);
+    state.goalReached = false;
+    const goalText = document.getElementById('goal-text');
+    if (goalText) goalText.innerText = `READ ${state.goalTarget} ARTICLES`;
 
     setupShop();
     setupDevTools();
     setupButtons();
     setupRadio();
 
-    // Check Tutorial (Local Storage version)
-    if (!tutorialData) {
-        document.getElementById('tutorial-modal').classList.remove('hidden');
-    }
+    // CHECK TUTORIAL (Cleaned up logic)
+    checkTutorial();
 
     await startNewRun();
 }
@@ -212,10 +215,15 @@ async function startNewRun() {
             else if (rand < 0.50) { trait = 'clickbait'; traitLabel = 'CLICKBAIT'; }
             else if (rand < 0.60) { trait = 'premium'; traitLabel = 'PREMIUM'; }
 
+            // Safe parsing
+            const title = item.querySelector("title") ? item.querySelector("title").textContent : "No Title";
+            const desc = item.querySelector("description") ? item.querySelector("description").textContent.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..." : "No Summary";
+            const link = item.querySelector("link") ? item.querySelector("link").textContent : "#";
+
             return {
-                title: item.querySelector("title").textContent,
-                summary: item.querySelector("description").textContent.replace(/<[^>]*>?/gm, '').substring(0, 150) + "...",
-                link: item.querySelector("link").textContent,
+                title: title,
+                summary: desc,
+                link: link,
                 source: currentStation.name,
                 trait: trait,
                 traitLabel: traitLabel
@@ -372,8 +380,6 @@ function setupRadio() {
     const knob = document.getElementById('radio-knob');
     if (knob) {
         knob.onclick = () => {
-            // LOGIC FIX: If the deck is empty, the shift is over. 
-            // The user must click "Start New Shift" on the Game Over screen.
             if (state.deck.length === 0 || state.isGameOver) {
                 playSound('bad');
                 const label = document.getElementById('radio-label');
@@ -396,7 +402,6 @@ function setupRadio() {
                 return;
             }
 
-            // Pay the price and switch
             state.xp -= cost;
             state.combo = 0; 
             state.shredderCharge = 0; 
@@ -419,7 +424,7 @@ function setupRadio() {
     }
 }
 
-// 7. RENDER ENGINE (Mobile Optimized)
+// 6. RENDER ENGINE (Mobile Optimized)
 function render() {
     const cardContainer = document.getElementById('card-container');
     const winScreen = document.getElementById('win-screen');
@@ -575,7 +580,7 @@ function render() {
     }
 }
 
-// 8. SHOP & DEV TOOLS
+// 7. SHOP & DEV TOOLS
 function setupShop() {
     const catalog = document.getElementById('shop-catalog');
     const modal = document.getElementById('shop-modal');
@@ -644,26 +649,50 @@ function setupDevTools() {
     }
 }
 
+// 8. TUTORIAL (ROBUST MOBILE FIX)
 function checkTutorial() {
     const tutorialSeen = localStorage.getItem('tutorialSeen');
     const modal = document.getElementById('tutorial-modal');
     const btn = document.getElementById('btn-close-tutorial');
 
-    if (!tutorialSeen && modal) {
-        modal.classList.remove('hidden'); 
-        
-        // ADD BOTH CLICK AND TOUCHSTART FOR MOBILE RESPONSIVENESS
+    if (!modal || !btn) return;
+
+    if (!tutorialSeen) {
+        // 1. Force Visible (Override CSS)
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex'; 
+
         const closeAction = (e) => {
-            e.preventDefault(); // Prevents double-triggering
-            playSound('thud'); 
-            modal.classList.add('hidden'); 
+            // Stop the event from bubbling up or firing twice
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            console.log("Closing Tutorial..."); 
+
+            // 2. Force Hidden
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
+            
+            // 3. Save & Sound
             localStorage.setItem('tutorialSeen', 'true');
+            
+            // Wrap sound in try/catch to prevent crash
+            try { playSound('thud'); } catch(err) { console.log(err); }
         };
 
-        btn.addEventListener('click', closeAction);
-        btn.addEventListener('touchstart', closeAction);
+        // Remove old listeners to be safe (clone node method)
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
+        // Attach fresh listeners
+        newBtn.addEventListener('click', closeAction);
+        newBtn.addEventListener('touchstart', closeAction, { passive: false }); 
         
-    } else if (modal) {
+    } else {
+        // Already seen
+        modal.style.display = 'none';
         modal.classList.add('hidden');
     }
 }
@@ -676,9 +705,6 @@ async function gameOver() {
     state.isGameOver = true;
     playSound('bad');
     
-    // REMOVED: const data = await chrome.storage.local.get(['highScore']); 
-    
-    // Correctly get data from phone storage
     const previousBest = parseInt(localStorage.getItem('highScore')) || 0;
     const isNewRecord = state.xp > previousBest;
 
@@ -717,5 +743,3 @@ async function gameOver() {
         };
     }
 }
-
-init();
