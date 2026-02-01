@@ -29,8 +29,8 @@
         margin: 0;
         overflow: hidden;
         padding-top: var(--safe-top);
-        -webkit-user-select: none; /* Safari mobile */
-        user-select: none;         /* Standard */
+        -webkit-user-select: none;
+        user-select: none;
         -webkit-touch-callout: none;
     }
 
@@ -53,10 +53,9 @@
     .stat-row { margin-bottom: 8px; font-size: 0.95rem; }
     #skip-tokens { color: #c0392b; letter-spacing: 2px; font-size: 1.1rem; }
 
-    /* HIGHLIGHTER EFFECT */
     .key-word { 
         color: #000; 
-        background: rgba(255, 234, 167, 0.8); /* Marker Yellow */
+        background: rgba(255, 234, 167, 0.8);
         padding: 0 4px;
         border-radius: 2px;
     }
@@ -85,52 +84,41 @@
     }
     .version { font-size: 0.7rem; color: #555; font-weight: bold; letter-spacing: 1px; }
 
-    /* --- JUICY ANIMATIONS --- */
-
-    /* 1. THE DROP: Card falls from top */
+    /* --- ANIMATIONS --- */
     @keyframes deal {
         0% { transform: translateY(-100vh) rotate(5deg); opacity: 0; }
-        60% { transform: translateY(20px) rotate(-3deg); opacity: 1; } /* Bounce past */
-        80% { transform: translateY(-10px) rotate(0deg); } /* Recoil */
-        100% { transform: translateY(0) rotate(-1deg); } /* Settle */
+        60% { transform: translateY(20px) rotate(-3deg); opacity: 1; }
+        80% { transform: translateY(-10px) rotate(0deg); }
+        100% { transform: translateY(0) rotate(-1deg); }
     }
-
-    /* 2. THE TOSS: Thrown to the left trash */
     @keyframes banishFly {
         0% { transform: rotate(-1deg); }
         100% { transform: translateX(-120%) rotate(-45deg); opacity: 0; }
     }
-
-    /* 3. THE FILE: Fly down-right to folder */
     @keyframes pinFly {
         0% { transform: rotate(-1deg); }
         100% { transform: translate(300px, 400px) scale(0.2) rotate(45deg); opacity: 0; }
     }
-
-    /* 4. THE SLAM: Stamp hits the paper */
     @keyframes stampSlam {
-        0% { opacity: 0; transform: scale(5) rotate(10deg); } /* Start HUGE */
-        70% { opacity: 1; transform: scale(0.8) rotate(-5deg); } /* Slam hard */
-        100% { transform: scale(1) rotate(-2deg); } /* Settle */
+        0% { opacity: 0; transform: scale(5) rotate(10deg); }
+        70% { opacity: 1; transform: scale(0.8) rotate(-5deg); }
+        100% { transform: scale(1) rotate(-2deg); }
     }
 
-    /* Utility Classes to Trigger Animations */
     .anim-deal { animation: deal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
     .anim-banish { animation: banishFly 0.5s ease-in forwards; }
     .anim-pin { animation: pinFly 0.6s ease-in forwards; }
-    
-    /* Add the delay to the stamp so it hits AFTER the paper lands */
     .anim-stamp { 
         animation: stampSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
-        animation-delay: 0.4s; /* Wait for card to land */
-        opacity: 0; /* Hidden until slam */
+        animation-delay: 0.4s;
+        opacity: 0;
     }
 
     /* --- THE SHREDDER --- */
     .shredder {
         position: absolute;
         bottom: 40px;
-        left: 20px; /* Sits to the left of the main card */
+        left: 20px;
         width: 140px;
         z-index: 15;
         transform: rotate(2deg);
@@ -185,7 +173,6 @@
         100% { transform: translate(-50%, -150%) scale(1.2); opacity: 0; }
     }
 
-    /* --- COFFEE RUSH VISUALS --- */
     .coffee-fx {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -195,7 +182,6 @@
         z-index: 900;
         transition: opacity 0.5s;
     }
-    
     body.caffeinated .coffee-fx { opacity: 1; }
     
     @keyframes coffeeShake {
@@ -205,17 +191,14 @@
         75% { transform: translate(-2px, -2px); }
         100% { transform: translate(0,0); }
     }
-    
-    body.caffeinated .game-area {
-        animation: coffeeShake 0.2s infinite; 
-    }
+    body.caffeinated .game-area { animation: coffeeShake 0.2s infinite; }
 
     /* --- TUTORIAL MODAL --- */
     .modal-overlay {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85); /* Dark background */
-        z-index: 1000; /* On top of EVERYTHING */
+        background: rgba(0,0,0,0.85);
+        z-index: 1000;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -223,9 +206,8 @@
     }
     .modal-overlay.hidden { display: none; }
 
-    /* --- MEMO POPUP STYLING --- */
     .memo-paper {
-        background: #fdfbf7; /* Off-white paper color */
+        background: #fdfbf7;
         width: 90%;
         max-width: 500px;
         padding: 40px;
@@ -247,7 +229,6 @@
         text-transform: uppercase;
     }
 
-    /* Fix the item text flow */
     .memo-item {
         background: rgba(0,0,0,0.03);
         padding: 12px;
@@ -255,23 +236,14 @@
         margin-bottom: 10px;
     }
 
-    .memo-item strong {
-        display: block;
-        font-size: 0.85rem;
-        margin-bottom: 3px;
-    }
-
-    .memo-item span {
-        font-size: 0.8rem;
-        line-height: 1.4;
-        color: #444;
-    }
+    .memo-item strong { display: block; font-size: 0.85rem; margin-bottom: 3px; }
+    .memo-item span { font-size: 0.8rem; line-height: 1.4; color: #444; }
 
     .stamp-button {
         width: 100%;
         padding: 15px;
         margin-top: 10px;
-        background: #c0392b; /* Stamp Red */
+        background: #c0392b;
         color: white;
         border: 2px dashed rgba(255,255,255,0.4);
         font-family: 'Courier New', monospace;
@@ -283,7 +255,6 @@
     .stamp-button:hover { transform: scale(1.02); background: #d63031; }
     .stamp-button:active { transform: scale(0.98); }
     
-    /* Charge Meter */
     .charge-bar-container {
         width: 100%;
         height: 8px;
@@ -293,12 +264,11 @@
     }
     .charge-bar-fill {
         height: 100%;
-        background: #0984e3; /* Blue when filling */
+        background: #0984e3;
         transition: width 0.3s, background 0.3s;
     }
-    .charge-ready { background: #00b894 !important; } /* Green when ready */
+    .charge-ready { background: #00b894 !important; }
 
-    /* The Button */
     #btn-shred {
         width: 100%;
         padding: 5px;
@@ -311,13 +281,12 @@
         transform: none;
     }
     #btn-shred:enabled {
-        background: #d63031; /* Red "Emergency" Color */
+        background: #d63031;
         cursor: pointer;
         box-shadow: 0 3px 0 #c0392b;
     }
     #btn-shred:active { transform: translateY(2px); box-shadow: none; }
     
-    /* Animation: Shredding Paper */
     @keyframes shredEffect {
         0% { transform: scale(1) translate(0,0); }
         20% { transform: scale(0.9) translate(-50px, 150px) rotate(-10deg); opacity: 1; }
@@ -325,46 +294,29 @@
     }
     .anim-shred { animation: shredEffect 0.6s ease-in forwards; }
 
-    /* --- SHOP CARD (Updated Position) --- */
+    /* --- SHOP CARD --- */
     .shop-card {
         position: absolute;
-        
-        /* Moved further down to accommodate the Quota note */
         top: 360px;  
         right: 40px; 
         left: auto;
-        
         width: 140px;
         height: 70px;
-        
         background: #f7f9fa; 
         padding: 15px;
         border: 1px solid #b2bec3;
         border-left: 4px solid #2c3e50; 
-        
         box-shadow: 2px 4px 10px rgba(0,0,0,0.1);
         transform: rotate(-2deg); 
         cursor: pointer;
         z-index: 5;
-        
         text-align: center;
         font-family: 'Courier New', monospace;
         transition: transform 0.2s;
     }
+    .shop-card:hover { transform: rotate(0deg) scale(1.05); box-shadow: 5px 10px 20px rgba(0,0,0,0.2); background: #ffffff; }
 
-    .shop-card:hover {
-        transform: rotate(0deg) scale(1.05); 
-        box-shadow: 5px 10px 20px rgba(0,0,0,0.2);
-        background: #ffffff;
-    }
-
-    .shop-logo {
-        font-size: 1.5rem;
-        line-height: 1;
-        margin-bottom: 5px;
-        color: #2c3e50;
-    }
-
+    .shop-logo { font-size: 1.5rem; line-height: 1; margin-bottom: 5px; color: #2c3e50; }
     .shop-title {
         font-weight: 900;
         font-size: 0.65rem;
@@ -374,15 +326,8 @@
         margin-bottom: 4px;
         letter-spacing: -0.5px;
     }
+    .shop-subtitle { font-size: 0.55rem; color: #7f8c8d; font-weight: bold; text-transform: uppercase; }
 
-    .shop-subtitle {
-        font-size: 0.55rem;
-        color: #7f8c8d;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
-
-    /* SHOP MODAL OVERLAY */
     .hidden { display: none !important; }
     #shop-modal {
         position: fixed;
@@ -394,7 +339,6 @@
         align-items: center;
     }
 
-    /* THE SHOP INTERFACE */
     .shop-paper {
         width: 400px;
         background: #fff;
@@ -443,25 +387,22 @@
         cursor: pointer;
     }
 
-    /* --- ATMOSPHERE (Vignette) --- */
     .vignette-overlay {
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
-        pointer-events: none; /* Let clicks pass through */
-        z-index: 90; /* Below the UI, above the desk */
+        pointer-events: none;
+        z-index: 90;
         background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0) 100%);
         transition: background 0.5s ease;
     }
-    
-    /* Sanity States applied to Body/Overlay */
     body.sanity-3 .vignette-overlay { background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0) 100%); }
-    body.sanity-2 .vignette-overlay { background: radial-gradient(circle, transparent 50%, rgba(60, 40, 0, 0.1) 100%); } /* Dim */
-    body.sanity-1 .vignette-overlay { background: radial-gradient(circle, transparent 40%, rgba(100, 0, 0, 0.3) 100%); } /* Danger Red */
+    body.sanity-2 .vignette-overlay { background: radial-gradient(circle, transparent 50%, rgba(60, 40, 0, 0.1) 100%); }
+    body.sanity-1 .vignette-overlay { background: radial-gradient(circle, transparent 40%, rgba(100, 0, 0, 0.3) 100%); }
 
     /* --- THE RADIO --- */
     .radio {
         position: absolute;
-        top: -10px; /* Hanging slightly off top */
+        top: -10px;
         left: 50%;
         transform: translateX(-50%);
         width: 180px;
@@ -499,17 +440,12 @@
     }
     .radio-knob:active { transform: scale(0.9); }
 
-    /* --- HAZARD CARD STYLES --- */
-    
-    /* CLICKBAIT: Glitchy & Messy */
     .trait-clickbait {
         border-color: #ff00ff !important;
         color: #ff00ff !important;
-        transform: rotate(180deg) !important; /* Upside down stamp! */
+        transform: rotate(180deg) !important;
         font-family: 'Comic Sans MS', sans-serif !important;
     }
-    
-    /* PREMIUM: Gold & Classy */
     .trait-premium {
         border-color: #f1c40f !important;
         color: #b7950b !important;
@@ -517,8 +453,6 @@
         border: 3px double #f1c40f !important;
     }
 
-    /* --- 4. INSTRUCTIONS (Pen on Paper) --- */
-    /* --- INSTRUCTIONS NOTE --- */
     .instructions {
         position: absolute;
         top: 180px;
@@ -529,19 +463,15 @@
         padding-top: 35px;
         box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         transform: rotate(1deg);
-        
-        /* UPDATED FONT: Professional Typewriter Style */
         font-family: 'Courier New', Courier, monospace; 
         font-weight: bold;
-        font-size: 0.75rem; /* Slightly smaller for cleaner look */
+        font-size: 0.75rem; 
         line-height: 1.6;
-        color: #2d3436;     /* Dark Grey Ink */
-        
+        color: #2d3436;     
         background-image: repeating-linear-gradient(white 0px, white 24px, #a4b0be 25px);
         z-index: 4;
     }
 
-    /* Legal Attribution Style */
     .byline {
         font-family: 'Verdana', sans-serif;
         font-size: 0.7rem;
@@ -570,9 +500,7 @@
     }
 
     .rule-item { margin-bottom: 12px; }
-    .key-word { color: #000; background: rgba(255, 234, 167, 0.6); padding: 0 2px; }
-
-    /* --- GAME AREA --- */
+    
     .game-area { 
         flex-grow: 1; 
         display: flex; 
@@ -581,16 +509,13 @@
         width: 100%;
     }
 
-    /* --- THE CARD --- */
     .card {
         background: var(--paper);
         width: 400px;
         height: 560px;
         padding: 40px;
         border: 1px solid #b2bec3;
-        box-shadow: 
-            0 1px 4px rgba(0,0,0,0.05), 
-            15px 15px 30px rgba(0,0,0,0.2); 
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05), 15px 15px 30px rgba(0,0,0,0.2); 
         display: flex;
         flex-direction: column;
         transform: rotate(-1deg);
@@ -608,23 +533,6 @@
         letter-spacing: 1px;
         opacity: 0.8; 
         transform: rotate(-2deg);
-    }
-
-    .boss-card {
-        border: 4px solid #8e44ad !important;
-        box-shadow: 
-            0 0 15px rgba(142, 68, 173, 0.4), 
-            15px 15px 30px rgba(0,0,0,0.3) !important;
-        animation: pulse 2s infinite ease-in-out;
-    }
-    .boss-card .headline {
-        color: #8e44ad !important;
-        border-bottom: 2px solid #8e44ad !important;
-    }
-    @keyframes pulse {
-        0% { transform: rotate(-1deg) scale(1); }
-        50% { transform: rotate(-1deg) scale(1.02); }
-        100% { transform: rotate(-1deg) scale(1); }
     }
 
     .headline { 
@@ -664,23 +572,10 @@
         padding-bottom: 5px;
     }
 
-    .summary-stats {
-        text-align: left;
-        margin: 20px 0;
-    }
+    .summary-stats { text-align: left; margin: 20px 0; }
+    .stat { margin: 5px 0; font-size: 0.9rem; }
+    .win-title { font-size: 2rem !important; margin-top: 0; color: #c0392b; }
 
-    .stat {
-        margin: 5px 0;
-        font-size: 0.9rem;
-    }
-
-    .win-title {
-        font-size: 2rem !important;
-        margin-top: 0;
-        color: #c0392b;
-    }
-
-    /* --- BUTTONS --- */
     .actions { display: flex; gap: 15px; margin-top: auto; }
     
     button {
@@ -697,61 +592,43 @@
         font-family: 'Verdana', sans-serif;
         color: var(--ink);
     }
-
-    button:active {
-        transform: translate(2px, 2px);
-        box-shadow: 2px 2px 0 var(--ink);
-    }
+    button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; transform: translate(2px, 2px); }
 
     .btn-skip:hover { background: #ffeaa7; }
     #btn-pin:hover { background: #74b9ff; color: white; text-shadow: 1px 1px 0 #000; }
     .btn-read:hover { background: #ff7675; color: white; text-shadow: 1px 1px 0 #000; }
-    
-    button:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-        box-shadow: none;
-        transform: translate(2px, 2px);
-    }
 
-    /* --- MANILA FOLDER --- */
     #pinned-container {
         background: #f1dfa5; 
         width: 260px;
         padding: 20px;
         padding-top: 35px;   
-        
         position: absolute;
         bottom: 50px; 
         right: 60px;
         transform: rotate(2deg); 
-        
         font-family: 'Courier New', monospace;
         color: #594f4f;      
         font-size: 0.85rem;
         font-weight: bold;
         line-height: 1.4;
-        
         border: 1px solid #d1c7ac;
         border-radius: 2px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
         z-index: 5;
     }
-
     #pinned-container::before {
         content: 'ARCHIVE'; 
         position: absolute;
         top: -22px;         
         left: 0;
-        
         width: 90px;
         height: 25px;
         background: #e6ce8c; 
-        
         border-radius: 5px 5px 0 0;
         border: 1px solid #d1c7ac;
         border-bottom: none;
-        
         display: flex;
         align-items: center;
         justify-content: center;
@@ -759,7 +636,6 @@
         letter-spacing: 1px;
         color: rgba(0,0,0,0.4);
     }
-
     #pinned-container::after {
         content: '';
         position: absolute;
@@ -774,14 +650,7 @@
     }
     
     #win-screen { display: none; text-align: center; }
-    .win-title { 
-        font-size: 3rem; 
-        color: var(--ink); 
-        font-family: 'Courier New', monospace;
-        margin-bottom: 10px; 
-        font-weight: 900;
-    }
-
+    
     #dev-reset-btn {
         margin-top: 8px;
         background: #c0392b; 
@@ -809,117 +678,67 @@
     }
     .shake-active { animation: shake 0.3s; }
 
-    /* --- MOBILE LAYOUT FIXES --- */
-    @media (max-width: 600px) {
+    /* --- FORCE LANDSCAPE (The "Computer" Layout on Mobile) --- */
 
-        /* 1. HIDE CLUTTER */
-        .instructions { display: none !important; }
-        .tape { display: none !important; }
+    /* 1. PORTRAIT BLOCKER */
+    #rotate-warning {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #2d3436;
+        color: white;
+        z-index: 9999;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-family: 'Courier New', monospace;
+    }
+    #rotate-warning .icon { font-size: 4rem; margin-bottom: 20px; animation: spin 2s infinite ease-in-out; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 25% { transform: rotate(-90deg); } 100% { transform: rotate(-90deg); } }
 
-        /* 2. COMPACT HEADER */
-        .title-card {
-            top: 10px;
-            left: 10px;
-            padding: 8px 12px;
-            transform: scale(0.75);
-            transform-origin: top left;
-            z-index: 20;
+    /* Show the blocker only on Portrait phones */
+    @media only screen and (orientation: portrait) and (max-width: 900px) {
+        #rotate-warning { display: flex; }
+        .game-area, .title-card, .hud, #radio-station, .shredder, .instructions, .shop-card, #pinned-container, #daily-goal-note {
+             /* Hide everything else so it doesn't scroll */
+             display: none !important;
         }
+        body { background: #2d3436; }
+    }
+
+    /* 2. SCALE DOWN FOR MOBILE LANDSCAPE */
+    /* When screen is SHORT (horizontal phone), scale everything down to fit */
+    @media only screen and (max-height: 600px) and (orientation: landscape) {
         
-        .radio {
-            top: 10px;
-            left: 50%; 
-            transform: translateX(-50%) scale(0.85);
-            width: 160px;
-            height: 40px;
-            z-index: 10;
-            border-radius: 0 0 5px 5px;
-        }
-
-        /* 3. RIGHT SIDE STACK (The "HUD") */
-        .hud.post-it {
-            top: 60px !important;
-            right: 0px !important;
-            width: 120px;
-            padding: 15px;
-            transform: scale(0.8) rotate(2deg) !important;
-            transform-origin: top right;
-            z-index: 15;
-        }
-
-        #daily-goal-note {
-            top: 150px !important;
-            right: 0px !important;
-            width: 120px;
-            transform: scale(0.8) rotate(-1deg) !important;
-            transform-origin: top right;
-            z-index: 14;
-        }
-
-        .shop-card {
-            top: 230px !important;
-            right: 5px !important;
-            transform: scale(0.8) rotate(1deg) !important;
-            transform-origin: top right;
-            z-index: 13;
-        }
-
-        /* 4. MAIN CARD (The Focus) */
-        .card {
-            position: absolute;
-            top: 55%; 
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-1deg) !important;
-            width: 85% !important;
-            height: auto !important;
-            min-height: 400px;
-            padding: 20px !important;
-            margin: 0 !important;
-        }
-
-        .headline { font-size: 1.3rem; margin-bottom: 15px; }
-        .summary { font-size: 0.95rem; line-height: 1.4; }
-        .actions { gap: 8px; }
+        /* Scale interactive elements to fit short height */
+        .card { transform: scale(0.55) rotate(-1deg); margin-top: 15px; }
         
-        button { padding: 18px 0 !important; font-size: 0.8rem; }
-
-        /* 5. BOTTOM CORNERS */
-        .shredder {
-            bottom: 10px;
-            left: 5px;
-            transform: scale(0.7);
-            transform-origin: bottom left;
-        }
+        /* Adjust positions for the scaled view */
+        .post-it { transform: scale(0.65) rotate(2deg); right: 10px; top: 10px; }
+        #daily-goal-note { transform: scale(0.65) rotate(-2deg); right: 10px; top: 110px !important; }
+        .shop-card { transform: scale(0.65) rotate(1deg); right: 10px; top: 190px !important; }
         
-        #pinned-container {
-            bottom: 10px;
-            right: 5px;
-            width: 160px;
-            transform: scale(0.7);
-            transform-origin: bottom right;
-        }
-
-        /* Modal Fixes */
-        .memo-paper {
-            width: 95%;
-            padding: 20px;
-            transform: rotate(0deg);
-        }
+        .title-card { transform: scale(0.65) rotate(-3deg); left: 10px; top: 10px; }
+        .instructions { transform: scale(0.65) rotate(1deg); left: 10px; top: 90px; }
         
-        .memo-item {
-            padding: 10px;
-            font-size: 0.8rem;
-        }
-
-        .stamp-button {
-            padding: 20px;
-            font-size: 1.2rem;
-        }
+        .shredder { transform: scale(0.6); left: 5px; bottom: 5px; }
+        #pinned-container { transform: scale(0.6); right: 5px; bottom: 5px; }
+        
+        /* Modal scaling */
+        .memo-paper { transform: scale(0.7); width: 80%; }
+        
+        .radio { top: 0; transform: translateX(-50%) scale(0.8); }
     }
 
 </style>
 </head>
 <body>
+
+    <div id="rotate-warning">
+        <div class="icon">⟳</div>
+        <div>PLEASE ROTATE DEVICE<br>TO LANDSCAPE MODE</div>
+    </div>
 
     <div id="coffee-overlay" class="coffee-fx"></div>
 
