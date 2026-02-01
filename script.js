@@ -1,14 +1,14 @@
-// 1. CONFIGURATION
+// ==========================================
+// 1. CONFIGURATION & STATE
+// ==========================================
 const STARTING_LIVES = 3;
 
-// RSS FEEDS (The Stations)
 const STATIONS = [
     { name: "BBC TECH", url: "https://feeds.bbci.co.uk/news/technology/rss.xml" },
     { name: "NYT WORLD", url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml" },
     { name: "WIRED", url: "https://www.wired.com/feed/rss" }
 ];
 
-// 2. GAME STATE
 let state = {
     deck: [],
     lives: STARTING_LIVES,
@@ -19,12 +19,15 @@ let state = {
     pinnedArticle: null,
     isGameOver: false,
     stationIndex: 0,
-    shredderCharge: 0, // 0 to 100
+    shredderCharge: 0,
     goalTarget: 5,
-    goalReached: false
+    goalReached: false,
+    highScore: 0
 };
 
-// --- AUDIO ENGINE ---
+// ==========================================
+// 2. AUDIO ENGINE
+// ==========================================
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type) {
@@ -33,53 +36,79 @@ function playSound(type) {
     const gainNode = audioCtx.createGain();
     osc.connect(gainNode);
     gainNode.connect(audioCtx.destination);
-
     const now = audioCtx.currentTime;
 
     if (type === 'deal') {
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-        gainNode.gain.setValueAtTime(0.1, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.start(now);
-        osc.stop(now + 0.1);
-    } 
-    else if (type === 'thud') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(100, now);
-        osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.3);
-        gainNode.gain.setValueAtTime(0.2, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now);
-        osc.stop(now + 0.3);
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+        gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'thud') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(100, now); osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.3);
+        gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+    } else if (type === 'good') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(600, now + 0.1);
+        gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+    } else if (type === 'bad') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+        gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now); osc.stop(now + 0.2);
+    } else if (type === 'click') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(800, now);
+        gainNode.gain.setValueAtTime(0.05, now); gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.start(now); osc.stop(now + 0.05);
     }
-    else if (type === 'good') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(400, now);
-        osc.frequency.linearRampToValueAtTime(600, now + 0.1);
-        gainNode.gain.setValueAtTime(0.1, now);
-        gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
-        osc.start(now);
-        osc.stop(now + 0.3);
+}
+
+function playFeedbackSound(isPositive) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    
+    if (isPositive) {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+    } else {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
     }
-    else if (type === 'bad') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, now);
-        osc.frequency.linearRampToValueAtTime(100, now + 0.2);
-        gainNode.gain.setValueAtTime(0.2, now);
-        gainNode.gain.linearRampToValueAtTime(0, now + 0.2);
-        osc.start(now);
-        osc.stop(now + 0.2);
-    }
-    else if (type === 'click') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(800, now);
-        gainNode.gain.setValueAtTime(0.05, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-        osc.start(now);
-        osc.stop(now + 0.05);
-    }
+    gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+    osc.start(now); osc.stop(now + 0.1);
+}
+
+// ==========================================
+// 3. UI HELPERS
+// ==========================================
+function showFeedback(text, color, isPositive = true) {
+    playFeedbackSound(isPositive);
+    const feedback = document.createElement('div');
+    feedback.innerText = text;
+    feedback.className = 'floating-feedback';
+    feedback.style.color = color;
+    const area = document.querySelector('.game-area');
+    if (area) area.appendChild(feedback);
+    setTimeout(() => feedback.remove(), 1000);
+}
+
+// Helper: Makes buttons respond instantly on touch screens
+function bindInteraction(elementId, callback) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const action = (e) => {
+        if (e.type === 'touchstart') e.preventDefault(); // Stop double-firing
+        callback();
+    };
+    el.addEventListener('click', action);
+    el.addEventListener('touchstart', action, { passive: false });
+}
+
+// ==========================================
+// 4. STORAGE & INITIALIZATION
+// ==========================================
+function saveState() {
+    localStorage.setItem('gameState', JSON.stringify(state));
 }
 
 function resetGameState() {
@@ -92,72 +121,12 @@ function resetGameState() {
     saveState();
 }
 
-// Helper to make buttons responsive on all devices
-function bindInteraction(elementId, callback) {
-    const el = document.getElementById(elementId);
-    if (!el) return;
-
-    const action = (e) => {
-        // Prevent "Ghost Clicks" (where the phone triggers both touch and click)
-        if (e.type === 'touchstart') {
-            e.preventDefault();
-        }
-        callback();
-    };
-
-    el.addEventListener('click', action);
-    el.addEventListener('touchstart', action, { passive: false });
-}
-
-function showFeedback(text, color, isPositive = true) {
-    playFeedbackSound(isPositive); // Trigger the blip or thud
-    
-    const feedback = document.createElement('div');
-    feedback.innerText = text;
-    feedback.className = 'floating-feedback';
-    feedback.style.color = color;
-    
-    const area = document.querySelector('.game-area');
-    area.appendChild(feedback);
-
-    setTimeout(() => feedback.remove(), 1000);
-}
-
-function playFeedbackSound(isPositive) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    const now = audioCtx.currentTime;
-    osc.type = 'sine';
-    
-    if (isPositive) {
-        // High-pitched "blip" for XP/Heals
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-    } else {
-        // Low "thud" for damage/traps
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(200, now);
-        osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
-    }
-
-    gainNode.gain.setValueAtTime(0.1, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-    osc.start(now);
-    osc.stop(now + 0.1);
-}
-
 async function init() {
     try {
-        // 1. Mobile Safe Storage Check
+        // 1. Mobile Safe Load
         const savedData = localStorage.getItem('gameState');
-        const tutorialSeen = localStorage.getItem('tutorialSeen');
         const highScoreData = localStorage.getItem('highScore');
 
-        // 2. Load Data
         if (savedData) {
             const parsed = JSON.parse(savedData);
             state.xp = parsed.xp || 0;
@@ -166,50 +135,51 @@ async function init() {
         }
         state.highScore = highScoreData ? parseInt(highScoreData) : 0;
         
-        // 3. Setup UI (Do this BEFORE fetching)
+        // 2. Setup UI
         setupShop();
         setupDevTools();
         setupButtons();
         setupRadio();
         
-        // 4. Trigger Tutorial IMMEDIATELY
+        // 3. Trigger Tutorial (Crucial: Run before network fetch)
         checkTutorial(); 
 
-        // 5. Update Goal UI
+        // 4. Update Goal
         const difficultyMultiplier = Math.floor(state.xp / 2000);
         state.goalTarget = 5 + (difficultyMultiplier * 3);
         const goalText = document.getElementById('goal-text');
         if (goalText) goalText.innerText = `READ ${state.goalTarget} ARTICLES`;
 
-        // 6. Start the Run
+        // 5. Start Game
         await startNewRun();
 
     } catch (err) {
-        // ERROR TRAP: If code crashes, show it on screen!
         console.error(err);
         document.getElementById('headline').innerText = "SYSTEM ERROR";
-        document.getElementById('summary').innerText = "Crash report: " + err.message;
-        alert("App Crashed: " + err.message); // Popup for visibility
+        document.getElementById('summary').innerText = "App Crash: " + err.message;
     }
 }
 
+// ==========================================
+// 5. NETWORK & DECK LOGIC
+// ==========================================
 async function startNewRun() {
     const currentStation = STATIONS[state.stationIndex];
     const radioLabel = document.getElementById('radio-label');
     if (radioLabel) radioLabel.innerText = currentStation.name;
 
     try {
-        // Use a CORS proxy that is more reliable for mobile
+        // CORS Proxy for Mobile Web
         const proxyUrl = "https://api.allorigins.win/raw?url=";
         const res = await fetch(proxyUrl + encodeURIComponent(currentStation.url));
         
-        if (!res.ok) throw new Error("Network response was not ok");
+        if (!res.ok) throw new Error("Network Error");
         
         const text = await res.text();
         const xml = new DOMParser().parseFromString(text, "text/xml");
         const items = Array.from(xml.querySelectorAll("item"));
         
-        if (items.length === 0) throw new Error("No articles found in feed");
+        if (items.length === 0) throw new Error("Feed Empty");
 
         const rawItems = items.sort(() => 0.5 - Math.random()).slice(0, 30); 
 
@@ -224,14 +194,13 @@ async function startNewRun() {
             else if (rand < 0.50) { trait = 'clickbait'; traitLabel = 'CLICKBAIT'; }
             else if (rand < 0.60) { trait = 'premium'; traitLabel = 'PREMIUM'; }
 
-            // Safe content extraction
             const titleNode = item.querySelector("title");
             const descNode = item.querySelector("description");
             const linkNode = item.querySelector("link");
 
             return {
                 title: titleNode ? titleNode.textContent : "Unknown Title",
-                summary: descNode ? descNode.textContent.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..." : "No summary available.",
+                summary: descNode ? descNode.textContent.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..." : "No summary.",
                 link: linkNode ? linkNode.textContent : "#",
                 source: currentStation.name,
                 trait, traitLabel
@@ -239,31 +208,28 @@ async function startNewRun() {
         });
 
         saveState();
-        render(); // This clears the "Initializing..." text
+        render(); // Clear "Initializing..."
 
     } catch (e) {
-        console.error("Fetch Error:", e);
+        console.error(e);
         document.getElementById('headline').innerText = "SIGNAL LOST";
-        document.getElementById('summary').innerText = "Could not fetch news. Check internet connection or try a different station.";
-        // Optional: Add a 'Retry' button logic here
+        document.getElementById('summary').innerText = "Could not fetch news. Check internet connection.";
     }
 }
 
-// 5. BUTTON & GAMEPLAY LOGIC
+// ==========================================
+// 6. GAMEPLAY INTERACTIONS
+// ==========================================
 function setupButtons() {
-    // 1. BANISH (SKIP)
+    // BANISH
     bindInteraction('btn-skip', () => {
         if (state.deck.length === 0 || state.isGameOver) return;
         
         const card = state.deck[0];
         const isFreeSkip = card.trait === 'clickbait';
 
-        // Visual/Audio Feedback
-        if (isFreeSkip) {
-            showFeedback("SAFE DISPOSAL!", "#00b894", true);
-        } else {
-            showFeedback("-1 SANITY ❤️", "#d63031", false);
-        }
+        if (isFreeSkip) showFeedback("SAFE DISPOSAL!", "#00b894", true);
+        else showFeedback("-1 SANITY ❤️", "#d63031", false);
         
         playSound(isFreeSkip ? 'deal' : 'bad'); 
         
@@ -279,13 +245,12 @@ function setupButtons() {
         }, 500);
     });
 
-    // 2. READ
+    // READ
     bindInteraction('btn-read', () => {
         if (state.deck.length === 0 || state.isGameOver) return;
-        
         const card = state.deck[0];
         
-        // Feedback logic
+        // Feedbacks
         if (card.trait === 'clickbait') {
             showFeedback("TRAPPED! -1 ❤️", "#d63031", false);
             state.lives--;
@@ -302,7 +267,7 @@ function setupButtons() {
             showFeedback("+XP & COMBO!", "#0984e3", true);
         }
         
-        // Premium Lock logic
+        // Premium Lock
         if (card.trait === 'premium') {
             const cost = 50;
             if (state.xp < cost) {
@@ -313,7 +278,7 @@ function setupButtons() {
             state.xp -= cost;
         }
 
-        // Standard Rewards
+        // Logic
         state.articlesRead++;
         state.combo++;
         state.shredderCharge = Math.min(100, state.shredderCharge + 20);
@@ -325,7 +290,7 @@ function setupButtons() {
         state.lives = Math.min(state.lives, 5);
         state.xp += Math.floor(xpGain);
 
-        // Daily Quota Tracking
+        // Daily Quota
         if (!state.goalReached) {
             const progress = (state.articlesRead / state.goalTarget) * 100;
             const progressBar = document.getElementById('goal-progress-bar');
@@ -335,7 +300,6 @@ function setupButtons() {
                 state.goalReached = true;
                 const bonus = 500 + (Math.floor(state.xp / 2000) * 250);
                 state.xp += bonus;
-                
                 showFeedback(`QUOTA MET! +${bonus} XP`, "#2980b9", true);
                 playSound('good');
                 
@@ -354,14 +318,12 @@ function setupButtons() {
         window.open(link, '_blank'); 
     });
 
-    // 3. PIN (SAVE)
+    // PIN
     bindInteraction('btn-pin', () => {
         if (state.deck.length === 0 || state.isGameOver) return;
-        
         playSound('deal');
         const cardEl = document.getElementById('card-container');
         cardEl.classList.add('anim-pin');
-        
         setTimeout(() => {
             state.pinnedArticle = state.deck[0];
             state.deck.shift();
@@ -370,14 +332,12 @@ function setupButtons() {
         }, 500);
     });
 
-    // 4. SHREDDER
+    // SHREDDER
     bindInteraction('btn-shred', () => {
         if (state.deck.length === 0 || state.shredderCharge < 100) return;
-        
         playSound('deal'); 
         const cardEl = document.getElementById('card-container');
         cardEl.classList.add('anim-shred');
-        
         setTimeout(() => {
             state.shredderCharge = 0; 
             state.deck.shift(); 
@@ -391,6 +351,7 @@ function setupRadio() {
     const knob = document.getElementById('radio-knob');
     if (knob) {
         knob.onclick = () => {
+            // Stop if empty
             if (state.deck.length === 0 || state.isGameOver) {
                 playSound('bad');
                 const label = document.getElementById('radio-label');
@@ -435,163 +396,9 @@ function setupRadio() {
     }
 }
 
-// 6. RENDER ENGINE (Mobile Optimized)
-function render() {
-    const cardContainer = document.getElementById('card-container');
-    const winScreen = document.getElementById('win-screen');
-    const sourceTag = document.getElementById('source');
-    
-    // UI Elements
-    const skipBtn = document.getElementById('btn-skip');
-    const readBtn = document.getElementById('btn-read');
-    const pinBtn = document.getElementById('btn-pin');
-    const shredBtn = document.getElementById('btn-shred');
-    const shredBar = document.getElementById('shredder-bar');
-
-    // Atmosphere
-    document.body.className = `sanity-${Math.max(1, Math.min(3, state.lives))}`;
-
-    // HUD
-    let lifeStr = "";
-    for(let i=0; i<state.lives; i++) lifeStr += "❤️ ";
-    document.getElementById('skip-tokens').innerText = lifeStr || "DEAD";
-    document.getElementById('xp-count').innerHTML = `${state.xp} XP <br> READ: ${state.articlesRead}`;
-
-    if (state.isGameOver || state.deck.length === 0) {
-        cardContainer.style.display = 'none';
-        winScreen.style.display = 'block';
-        
-        // Game Over Screen Logic
-        document.querySelector('.win-title').innerText = state.lives <= 0 ? "BURNOUT" : "DESK CLEAR";
-        document.querySelector('#win-screen p').innerHTML = `
-            SHIFT ENDED.<br>
-            ARTICLES PROCESSED: <b>${state.articlesRead}</b><br>
-            TOTAL XP: ${state.xp}
-            <br><br>
-            <button onclick="location.reload()" style="background:#2c3e50; color:white; padding:10px; cursor:pointer; border:none; font-family:inherit; font-weight:bold;">START NEW SHIFT</button>
-        `;
-        return;
-    } else {
-        cardContainer.style.display = 'flex';
-        winScreen.style.display = 'none';
-    }
-
-    const card = state.deck[0];
-    
-    // Animation
-    cardContainer.className = "card"; 
-    void cardContainer.offsetWidth; 
-    cardContainer.classList.add('anim-deal'); 
-    playSound('deal'); 
-
-    document.getElementById('headline').innerText = card.title;
-    document.getElementById('summary').innerText = card.summary;
-    document.getElementById('byline').innerText = "SOURCE: " + card.source;
-
-    // Traits
-    sourceTag.className = "source-tag"; 
-    sourceTag.style = ""; 
-    sourceTag.innerText = card.traitLabel; 
-    if (card.trait !== 'standard') sourceTag.classList.add('anim-stamp');
-    if (card.trait !== 'standard') playSound('thud');
-
-    // --- MOBILE BUTTON TEXT UPDATES ---
-    // Banish Button
-    if (card.trait === 'clickbait') {
-        skipBtn.innerText = "BANISH (SAFE)";
-        skipBtn.style.color = "#00b894";
-    } else {
-        skipBtn.innerText = "BANISH -1 ❤️";
-        skipBtn.style.color = "#d63031";
-    }
-
-    // Pin Button
-    pinBtn.innerText = "PIN (FREE)";
-
-    // Read Button
-    readBtn.disabled = false;
-    readBtn.style.background = "";
-    
-    if (card.trait === 'clickbait') {
-        readBtn.innerText = "RISK IT? -1 ❤️";
-        readBtn.style.background = "#fd79a8";
-        sourceTag.classList.add('trait-clickbait');
-    }
-    else if (card.trait === 'premium') {
-        sourceTag.classList.add('trait-premium');
-        if (state.xp >= 50) {
-            readBtn.innerText = "UNLOCK (-50 XP)";
-            readBtn.style.background = "#ffeaa7";
-        } else {
-            readBtn.innerText = "LOCKED (NEED 50 XP)";
-            readBtn.disabled = true;
-            readBtn.style.background = "#dfe6e9";
-        }
-    }
-    else if (card.trait === 'breaking') {
-        readBtn.innerText = "HEAL +1 ❤️";
-        readBtn.style.background = "#fab1a0";
-        sourceTag.style.color = "#d63031"; sourceTag.style.borderColor = "#d63031";
-    }
-    else if (card.trait === 'coffee') {
-        readBtn.innerText = "DRINK +2 ❤️";
-        readBtn.style.background = "#55efc4";
-        sourceTag.style.color = "#6D214F"; sourceTag.style.borderColor = "#6D214F";
-    }
-    else if (card.trait === 'trending') {
-        readBtn.innerText = "READ 2x XP";
-        readBtn.style.background = "#f1c40f";
-        sourceTag.style.color = "#f39c12"; sourceTag.style.borderColor = "#f1c40f";
-    }
-    else {
-        readBtn.innerText = "READ"; 
-        sourceTag.style.color = "#2f3542"; sourceTag.style.borderColor = "#2f3542";
-    }
-
-    // Rank Update
-    const rankEl = document.getElementById('player-rank');
-    if (rankEl) {
-        let title = "UNPAID INTERN";
-        if (state.xp > 500) title = "JUNIOR BLOGGER";
-        if (state.xp > 2000) title = "SENIOR WRITER";
-        if (state.xp > 5000) title = "CHIEF EDITOR";
-        if (state.xp > 15000) title = "MEDIA MOGUL";
-        rankEl.innerText = title;
-    }
-
-    // Shredder Update
-    if (shredBar && shredBtn) {
-        shredBar.style.width = `${state.shredderCharge}%`;
-        if (state.shredderCharge >= 100) {
-            shredBar.classList.add('charge-ready');
-            shredBtn.disabled = false;
-            shredBtn.innerText = "SHRED IT!";
-            shredBtn.style.background = "#d63031"; 
-        } else {
-            shredBar.classList.remove('charge-ready');
-            shredBtn.disabled = true;
-            shredBtn.innerText = `CHARGING (${state.shredderCharge}%)`;
-            shredBtn.style.background = "#636e72"; 
-        }
-    }
-
-    // Notepad & Folder
-    document.getElementById('deck-count').innerText = state.deck.length;
-    document.getElementById('combo-display').innerText = "x" + (1 + (state.combo*0.1)).toFixed(1);
-
-    const pinnedContainer = document.getElementById('pinned-container');
-    if (pinnedContainer) {
-        pinnedContainer.style.display = 'block'; 
-        if (state.pinnedArticle) {
-            pinnedContainer.innerHTML = `SAVED: <span id="saved-link" style="cursor:pointer; border-bottom:1px solid #333;">${state.pinnedArticle.title}</span>`;
-            document.getElementById('saved-link').onclick = () => window.open(state.pinnedArticle.link, '_blank');
-        } else {
-            pinnedContainer.innerHTML = `<span style="opacity: 0.4; font-style: italic;">(FOLDER EMPTY)</span>`;
-        }
-    }
-}
-
+// ==========================================
 // 7. SHOP & DEV TOOLS
+// ==========================================
 function setupShop() {
     const catalog = document.getElementById('shop-catalog');
     const modal = document.getElementById('shop-modal');
@@ -652,15 +459,17 @@ function setupDevTools() {
     if (devBtn) {
         devBtn.onclick = () => {
             playSound('bad');
-            if (confirm("⚠ SYSTEM RESET ⚠\n\nThis will wipe your XP, Inventory, and current Run.\nAre you sure?")) {
-                localStorage.clear(); // Clears phone data
+            if (confirm("⚠ SYSTEM RESET ⚠\n\nWipe all data?")) {
+                localStorage.clear();
                 location.reload();
             }
         };
     }
 }
 
-// 8. TUTORIAL (ROBUST MOBILE FIX)
+// ==========================================
+// 8. TUTORIAL (ROBUST FIX)
+// ==========================================
 function checkTutorial() {
     const tutorialSeen = localStorage.getItem('tutorialSeen');
     const modal = document.getElementById('tutorial-modal');
@@ -669,49 +478,36 @@ function checkTutorial() {
     if (!modal || !btn) return;
 
     if (!tutorialSeen) {
-        // 1. Force Visible (Override CSS)
         modal.classList.remove('hidden');
-        modal.style.display = 'flex'; 
+        modal.style.display = 'flex'; // Force visible
 
         const closeAction = (e) => {
-            // Stop the event from bubbling up or firing twice
             if (e) {
                 e.preventDefault();
                 e.stopPropagation();
             }
-
-            console.log("Closing Tutorial..."); 
-
-            // 2. Force Hidden
             modal.style.display = 'none';
             modal.classList.add('hidden');
-            
-            // 3. Save & Sound
             localStorage.setItem('tutorialSeen', 'true');
-            
-            // Wrap sound in try/catch to prevent crash
-            try { playSound('thud'); } catch(err) { console.log(err); }
+            try { playSound('thud'); } catch(err) {}
         };
 
-        // Remove old listeners to be safe (clone node method)
+        // Replace button to clear old listeners
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
 
-        // Attach fresh listeners
         newBtn.addEventListener('click', closeAction);
         newBtn.addEventListener('touchstart', closeAction, { passive: false }); 
         
     } else {
-        // Already seen
         modal.style.display = 'none';
         modal.classList.add('hidden');
     }
 }
 
-function saveState() {
-    localStorage.setItem('gameState', JSON.stringify(state));
-}
-
+// ==========================================
+// 9. GAME OVER & RENDER
+// ==========================================
 async function gameOver() {
     state.isGameOver = true;
     playSound('bad');
@@ -748,9 +544,152 @@ async function gameOver() {
             </div>
         `;
 
-        document.getElementById('restart-shift-btn').onclick = () => {
-            resetGameState();
-            location.reload(); 
+        // Bind reset button
+        const resetBtn = document.getElementById('restart-shift-btn');
+        const resetAction = (e) => {
+             if(e) e.preventDefault();
+             resetGameState();
+             location.reload(); 
         };
+        resetBtn.addEventListener('click', resetAction);
+        resetBtn.addEventListener('touchstart', resetAction);
     }
 }
+
+function render() {
+    const cardContainer = document.getElementById('card-container');
+    const winScreen = document.getElementById('win-screen');
+    const sourceTag = document.getElementById('source');
+    
+    // UI Elements
+    const skipBtn = document.getElementById('btn-skip');
+    const readBtn = document.getElementById('btn-read');
+    const pinBtn = document.getElementById('btn-pin');
+    const shredBtn = document.getElementById('btn-shred');
+    const shredBar = document.getElementById('shredder-bar');
+
+    // Atmosphere
+    document.body.className = `sanity-${Math.max(1, Math.min(3, state.lives))}`;
+
+    // HUD
+    let lifeStr = "";
+    for(let i=0; i<state.lives; i++) lifeStr += "❤️ ";
+    document.getElementById('skip-tokens').innerText = lifeStr || "DEAD";
+    document.getElementById('xp-count').innerHTML = `${state.xp} XP <br> READ: ${state.articlesRead}`;
+
+    if (state.isGameOver || state.deck.length === 0) {
+        cardContainer.style.display = 'none';
+        winScreen.style.display = 'block';
+        if (!state.isGameOver) gameOver(); // Handle empty deck finish
+        return;
+    } else {
+        cardContainer.style.display = 'flex';
+        winScreen.style.display = 'none';
+    }
+
+    const card = state.deck[0];
+    cardContainer.className = "card"; 
+    void cardContainer.offsetWidth; // Trigger reflow
+    cardContainer.classList.add('anim-deal'); 
+    
+    document.getElementById('headline').innerText = card.title;
+    document.getElementById('summary').innerText = card.summary;
+    document.getElementById('byline').innerText = "SOURCE: " + card.source;
+
+    // Traits
+    sourceTag.className = "source-tag"; 
+    sourceTag.style = ""; 
+    sourceTag.innerText = card.traitLabel; 
+    if (card.trait !== 'standard') sourceTag.classList.add('anim-stamp');
+
+    // Mobile Text Updates
+    if (card.trait === 'clickbait') {
+        skipBtn.innerText = "BANISH (SAFE)";
+        skipBtn.style.color = "#00b894";
+        readBtn.innerText = "RISK IT? -1 ❤️";
+        readBtn.style.background = "#fd79a8";
+        sourceTag.classList.add('trait-clickbait');
+    } else {
+        skipBtn.innerText = "BANISH -1 ❤️";
+        skipBtn.style.color = "#d63031";
+        
+        if (card.trait === 'premium') {
+            sourceTag.classList.add('trait-premium');
+            if (state.xp >= 50) {
+                readBtn.innerText = "UNLOCK (-50 XP)";
+                readBtn.style.background = "#ffeaa7";
+                readBtn.disabled = false;
+            } else {
+                readBtn.innerText = "LOCKED (NEED 50 XP)";
+                readBtn.disabled = true;
+                readBtn.style.background = "#dfe6e9";
+            }
+        } else if (card.trait === 'breaking') {
+            readBtn.innerText = "HEAL +1 ❤️";
+            readBtn.style.background = "#fab1a0";
+            readBtn.disabled = false;
+            sourceTag.style.color = "#d63031"; sourceTag.style.borderColor = "#d63031";
+        } else if (card.trait === 'coffee') {
+            readBtn.innerText = "DRINK +2 ❤️";
+            readBtn.style.background = "#55efc4";
+            readBtn.disabled = false;
+            sourceTag.style.color = "#6D214F"; sourceTag.style.borderColor = "#6D214F";
+        } else if (card.trait === 'trending') {
+            readBtn.innerText = "READ 2x XP";
+            readBtn.style.background = "#f1c40f";
+            readBtn.disabled = false;
+            sourceTag.style.color = "#f39c12"; sourceTag.style.borderColor = "#f1c40f";
+        } else {
+            readBtn.innerText = "READ"; 
+            readBtn.style.background = "";
+            readBtn.disabled = false;
+            sourceTag.style.color = "#2f3542"; sourceTag.style.borderColor = "#2f3542";
+        }
+    }
+    pinBtn.innerText = "PIN (FREE)";
+
+    // Rank
+    const rankEl = document.getElementById('player-rank');
+    if (rankEl) {
+        let title = "UNPAID INTERN";
+        if (state.xp > 500) title = "JUNIOR BLOGGER";
+        if (state.xp > 2000) title = "SENIOR WRITER";
+        if (state.xp > 5000) title = "CHIEF EDITOR";
+        if (state.xp > 15000) title = "MEDIA MOGUL";
+        rankEl.innerText = title;
+    }
+
+    // Shredder
+    if (shredBar && shredBtn) {
+        shredBar.style.width = `${state.shredderCharge}%`;
+        if (state.shredderCharge >= 100) {
+            shredBar.classList.add('charge-ready');
+            shredBtn.disabled = false;
+            shredBtn.innerText = "SHRED IT!";
+            shredBtn.style.background = "#d63031"; 
+        } else {
+            shredBar.classList.remove('charge-ready');
+            shredBtn.disabled = true;
+            shredBtn.innerText = `CHARGING (${state.shredderCharge}%)`;
+            shredBtn.style.background = "#636e72"; 
+        }
+    }
+
+    // Notepad & Folder
+    document.getElementById('deck-count').innerText = state.deck.length;
+    document.getElementById('combo-display').innerText = "x" + (1 + (state.combo*0.1)).toFixed(1);
+
+    const pinnedContainer = document.getElementById('pinned-container');
+    if (pinnedContainer) {
+        pinnedContainer.style.display = 'block'; 
+        if (state.pinnedArticle) {
+            pinnedContainer.innerHTML = `SAVED: <span id="saved-link" style="cursor:pointer; border-bottom:1px solid #333;">${state.pinnedArticle.title}</span>`;
+            document.getElementById('saved-link').onclick = () => window.open(state.pinnedArticle.link, '_blank');
+        } else {
+            pinnedContainer.innerHTML = `<span style="opacity: 0.4; font-style: italic;">(FOLDER EMPTY)</span>`;
+        }
+    }
+}
+
+// 10. LAUNCH
+init();
