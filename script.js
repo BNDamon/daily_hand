@@ -92,6 +92,23 @@ function resetGameState() {
     saveState();
 }
 
+// Helper to make buttons responsive on all devices
+function bindInteraction(elementId, callback) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    const action = (e) => {
+        // Prevent "Ghost Clicks" (where the phone triggers both touch and click)
+        if (e.type === 'touchstart') {
+            e.preventDefault();
+        }
+        callback();
+    };
+
+    el.addEventListener('click', action);
+    el.addEventListener('touchstart', action, { passive: false });
+}
+
 function showFeedback(text, color, isPositive = true) {
     playFeedbackSound(isPositive); // Trigger the blip or thud
     
@@ -215,24 +232,22 @@ async function startNewRun() {
 
 // 5. BUTTON & GAMEPLAY LOGIC
 function setupButtons() {
-    const skipBtn = document.getElementById('btn-skip');
-    const readBtn = document.getElementById('btn-read');
-    const pinBtn = document.getElementById('btn-pin');
-    const shredBtn = document.getElementById('btn-shred');
-
-    // BANISH
-    if (skipBtn) skipBtn.onclick = () => {
+    // 1. BANISH (SKIP)
+    bindInteraction('btn-skip', () => {
         if (state.deck.length === 0 || state.isGameOver) return;
+        
         const card = state.deck[0];
         const isFreeSkip = card.trait === 'clickbait';
 
+        // Visual/Audio Feedback
         if (isFreeSkip) {
-            showFeedback("SAFE DISPOSAL!", "#00b894"); // Green for good skip
+            showFeedback("SAFE DISPOSAL!", "#00b894", true);
         } else {
-            showFeedback("-1 SANITY ❤️", "#d63031"); // Red for damage
+            showFeedback("-1 SANITY ❤️", "#d63031", false);
         }
         
         playSound(isFreeSkip ? 'deal' : 'bad'); 
+        
         const cardEl = document.getElementById('card-container');
         cardEl.classList.add('anim-banish');
 
@@ -243,23 +258,32 @@ function setupButtons() {
             if (state.lives <= 0) gameOver();
             else render();
         }, 500);
-    };
+    });
 
-    // READ
-    if (readBtn) readBtn.onclick = () => {
+    // 2. READ
+    bindInteraction('btn-read', () => {
         if (state.deck.length === 0 || state.isGameOver) return;
+        
         const card = state.deck[0];
         
+        // Feedback logic
         if (card.trait === 'clickbait') {
-            showFeedback("TRAPPED! -1 ❤️", "#d63031"); // Clarifies it was a trap
+            showFeedback("TRAPPED! -1 ❤️", "#d63031", false);
+            state.lives--;
+            if (state.lives <= 0) { gameOver(); return; }
         } else if (card.trait === 'coffee') {
-            // Already handled by triggerCoffeeRush(), but we can add:
-            showFeedback("+2 HEARTS ❤️❤️", "#00b894");
+            showFeedback("+2 HEARTS ❤️❤️", "#00b894", true);
+            state.lives += 2;
+            playSound('good');
+        } else if (card.trait === 'breaking') {
+            showFeedback("+1 HEART ❤️", "#00b894", true);
+            state.lives++;
+            playSound('good');
         } else {
-            showFeedback("+XP & COMBO!", "#0984e3"); // Blue for score
+            showFeedback("+XP & COMBO!", "#0984e3", true);
         }
         
-        
+        // Premium Lock logic
         if (card.trait === 'premium') {
             const cost = 50;
             if (state.xp < cost) {
@@ -270,40 +294,37 @@ function setupButtons() {
             state.xp -= cost;
         }
 
-        // Rewards
+        // Standard Rewards
         state.articlesRead++;
         state.combo++;
-        // Charge Shredder (Cap at 100)
         state.shredderCharge = Math.min(100, state.shredderCharge + 20);
 
         let xpGain = 10 * (1 + (state.combo * 0.1)); 
         if (card.trait === 'trending' || card.trait === 'premium') xpGain *= 2; 
-        if (card.trait === 'breaking') { state.lives++; playSound('good'); }
-        if (card.trait === 'coffee') { state.lives += 2; playSound('good'); }
-
         if (state.inventory.includes('pen') && card.trait === 'trending') xpGain += 15;
 
         state.lives = Math.min(state.lives, 5);
         state.xp += Math.floor(xpGain);
 
+        // Daily Quota Tracking
         if (!state.goalReached) {
-        const progress = (state.articlesRead / state.goalTarget) * 100;
-        const progressBar = document.getElementById('goal-progress-bar');
-        if (progressBar) progressBar.style.width = `${Math.min(100, progress)}%`;
+            const progress = (state.articlesRead / state.goalTarget) * 100;
+            const progressBar = document.getElementById('goal-progress-bar');
+            if (progressBar) progressBar.style.width = `${Math.min(100, progress)}%`;
 
-        if (state.articlesRead >= state.goalTarget) {
-            state.goalReached = true;
-            
-            // SCALE REWARD: 500 XP base + 250 per difficulty level
-            const bonus = 500 + (Math.floor(state.xp / 2000) * 250);
-            state.xp += bonus;
-            
-            showFeedback(`QUOTA MET! +${bonus} XP`, "#2980b9", true);
-            playSound('good');
-            
-            document.getElementById('daily-goal-note').style.background = "#55efc4";
-            document.getElementById('goal-text').innerText = "QUOTA COMPLETE ✓";
-        }
+            if (state.articlesRead >= state.goalTarget) {
+                state.goalReached = true;
+                const bonus = 500 + (Math.floor(state.xp / 2000) * 250);
+                state.xp += bonus;
+                
+                showFeedback(`QUOTA MET! +${bonus} XP`, "#2980b9", true);
+                playSound('good');
+                
+                const note = document.getElementById('daily-goal-note');
+                if (note) note.style.background = "#55efc4";
+                const txt = document.getElementById('goal-text');
+                if (txt) txt.innerText = "QUOTA COMPLETE ✓";
+            }
         }
 
         playSound('deal'); 
@@ -312,36 +333,39 @@ function setupButtons() {
         saveState();
         render();
         window.open(link, '_blank'); 
-    };
+    });
 
-    // PIN
-    if (pinBtn) pinBtn.onclick = () => {
+    // 3. PIN (SAVE)
+    bindInteraction('btn-pin', () => {
         if (state.deck.length === 0 || state.isGameOver) return;
+        
         playSound('deal');
         const cardEl = document.getElementById('card-container');
         cardEl.classList.add('anim-pin');
+        
         setTimeout(() => {
             state.pinnedArticle = state.deck[0];
             state.deck.shift();
             saveState();
             render();
         }, 500);
-    };
+    });
 
-    // SHREDDER
-    if (shredBtn) shredBtn.onclick = () => {
+    // 4. SHREDDER
+    bindInteraction('btn-shred', () => {
         if (state.deck.length === 0 || state.shredderCharge < 100) return;
-        playSound('deal'); // Shred sound
+        
+        playSound('deal'); 
         const cardEl = document.getElementById('card-container');
-        cardEl.classList.add('anim-shred'); // CSS Animation needed in styles
+        cardEl.classList.add('anim-shred');
         
         setTimeout(() => {
-            state.shredderCharge = 0; // Reset
-            state.deck.shift(); // Remove without penalty
+            state.shredderCharge = 0; 
+            state.deck.shift(); 
             saveState();
             render();
         }, 500);
-    };
+    });
 }
 
 function setupRadio() {
