@@ -150,58 +150,67 @@ function playFeedbackSound(isPositive) {
     osc.stop(now + 0.1);
 }
 
-// 3. INITIALIZATION
 async function init() {
-    const savedData = localStorage.getItem('gameState');
-    const highScoreData = localStorage.getItem('highScore');
+    try {
+        // 1. Mobile Safe Storage Check
+        const savedData = localStorage.getItem('gameState');
+        const tutorialSeen = localStorage.getItem('tutorialSeen');
+        const highScoreData = localStorage.getItem('highScore');
 
-    if (savedData) {
-        const parsed = JSON.parse(savedData);
-        state.xp = parsed.xp || 0;
-        state.inventory = parsed.inventory || [];
-        state.pinnedArticle = parsed.pinnedArticle || null;
-        state.stationIndex = parsed.stationIndex || 0;
-        state.shredderCharge = parsed.shredderCharge || 0;
+        // 2. Load Data
+        if (savedData) {
+            const parsed = JSON.parse(savedData);
+            state.xp = parsed.xp || 0;
+            state.inventory = parsed.inventory || [];
+            state.stationIndex = parsed.stationIndex || 0;
+        }
+        state.highScore = highScoreData ? parseInt(highScoreData) : 0;
+        
+        // 3. Setup UI (Do this BEFORE fetching)
+        setupShop();
+        setupDevTools();
+        setupButtons();
+        setupRadio();
+        
+        // 4. Trigger Tutorial IMMEDIATELY
+        checkTutorial(); 
+
+        // 5. Update Goal UI
+        const difficultyMultiplier = Math.floor(state.xp / 2000);
+        state.goalTarget = 5 + (difficultyMultiplier * 3);
+        const goalText = document.getElementById('goal-text');
+        if (goalText) goalText.innerText = `READ ${state.goalTarget} ARTICLES`;
+
+        // 6. Start the Run
+        await startNewRun();
+
+    } catch (err) {
+        // ERROR TRAP: If code crashes, show it on screen!
+        console.error(err);
+        document.getElementById('headline').innerText = "SYSTEM ERROR";
+        document.getElementById('summary').innerText = "Crash report: " + err.message;
+        alert("App Crashed: " + err.message); // Popup for visibility
     }
-
-    // Set high score from local storage
-    state.highScore = highScoreData ? parseInt(highScoreData) : 0;
-
-    // Standard Reset for new shift
-    state.lives = state.inventory.includes('mug') ? STARTING_LIVES + 1 : STARTING_LIVES;
-    state.articlesRead = 0;
-    state.combo = 0;
-    state.isGameOver = false;
-    
-    // Set Goal Target based on difficulty
-    const difficultyMultiplier = Math.floor(state.xp / 2000);
-    state.goalTarget = 5 + (difficultyMultiplier * 3);
-    state.goalReached = false;
-    const goalText = document.getElementById('goal-text');
-    if (goalText) goalText.innerText = `READ ${state.goalTarget} ARTICLES`;
-
-    setupShop();
-    setupDevTools();
-    setupButtons();
-    setupRadio();
-
-    // CHECK TUTORIAL (Cleaned up logic)
-    checkTutorial();
-
-    await startNewRun();
 }
 
-// 4. THE DEALER
 async function startNewRun() {
     const currentStation = STATIONS[state.stationIndex];
     const radioLabel = document.getElementById('radio-label');
     if (radioLabel) radioLabel.innerText = currentStation.name;
 
     try {
-        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(currentStation.url)}`);
+        // Use a CORS proxy that is more reliable for mobile
+        const proxyUrl = "https://api.allorigins.win/raw?url=";
+        const res = await fetch(proxyUrl + encodeURIComponent(currentStation.url));
+        
+        if (!res.ok) throw new Error("Network response was not ok");
+        
         const text = await res.text();
         const xml = new DOMParser().parseFromString(text, "text/xml");
         const items = Array.from(xml.querySelectorAll("item"));
+        
+        if (items.length === 0) throw new Error("No articles found in feed");
+
         const rawItems = items.sort(() => 0.5 - Math.random()).slice(0, 30); 
 
         state.deck = rawItems.map(item => {
@@ -215,26 +224,28 @@ async function startNewRun() {
             else if (rand < 0.50) { trait = 'clickbait'; traitLabel = 'CLICKBAIT'; }
             else if (rand < 0.60) { trait = 'premium'; traitLabel = 'PREMIUM'; }
 
-            // Safe parsing
-            const title = item.querySelector("title") ? item.querySelector("title").textContent : "No Title";
-            const desc = item.querySelector("description") ? item.querySelector("description").textContent.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..." : "No Summary";
-            const link = item.querySelector("link") ? item.querySelector("link").textContent : "#";
+            // Safe content extraction
+            const titleNode = item.querySelector("title");
+            const descNode = item.querySelector("description");
+            const linkNode = item.querySelector("link");
 
             return {
-                title: title,
-                summary: desc,
-                link: link,
+                title: titleNode ? titleNode.textContent : "Unknown Title",
+                summary: descNode ? descNode.textContent.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..." : "No summary available.",
+                link: linkNode ? linkNode.textContent : "#",
                 source: currentStation.name,
-                trait: trait,
-                traitLabel: traitLabel
+                trait, traitLabel
             };
         });
 
         saveState();
-        render();
+        render(); // This clears the "Initializing..." text
+
     } catch (e) {
-        console.error(e);
-        document.getElementById('headline').innerText = "Signal Lost. Check Radio.";
+        console.error("Fetch Error:", e);
+        document.getElementById('headline').innerText = "SIGNAL LOST";
+        document.getElementById('summary').innerText = "Could not fetch news. Check internet connection or try a different station.";
+        // Optional: Add a 'Retry' button logic here
     }
 }
 

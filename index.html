@@ -65,6 +65,90 @@
         padding: 20px; /* Reduce padding to give text more room */
         transform: rotate(0deg); /* Straighten it out for better legibility on small screens */
     }
+
+    /* --- MOBILE LAYOUT FIXES --- */
+@media (max-width: 600px) {
+
+    /* 1. HIDE CLUTTER */
+    /* You don't need the instructions paper on mobile, the tutorial covers it */
+    .instructions {
+        display: none !important;
+    }
+    .tape { display: none !important; }
+
+    /* 2. MOVE RADIO DOWN (Safe Area) */
+    .radio {
+        top: 60px; /* Push below the phone notch */
+        width: 160px;
+        height: 40px;
+        font-size: 0.8rem;
+    }
+
+    /* 3. ORGANIZE THE HUD STACK (Right Side) */
+    /* Scale them down slightly so they don't cover the card */
+    .hud.post-it {
+        top: 60px !important;
+        right: 10px !important;
+        transform: scale(0.8) rotate(2deg);
+        transform-origin: top right;
+    }
+
+    #daily-goal-note {
+        top: 180px !important; /* Move up below HUD */
+        right: 10px !important;
+        transform: scale(0.8) rotate(-1deg);
+        transform-origin: top right;
+    }
+
+    .shop-card {
+        top: 280px !important; /* Move up below Goal */
+        right: 10px !important;
+        transform: scale(0.8) rotate(1deg);
+        transform-origin: top right;
+    }
+
+    /* 4. CENTER THE MAIN CARD */
+    .card {
+        width: 90% !important; /* Fit screen width */
+        height: 55vh !important; /* Adjust height */
+        padding: 20px !important;
+        margin-top: 50px; /* Push down from radio */
+    }
+
+    .headline {
+        font-size: 1.2rem; /* Smaller font for mobile */
+    }
+    
+    .summary {
+        font-size: 0.95rem;
+    }
+
+    /* 5. BIGGER BUTTONS (Touch Friendly) */
+    .actions {
+        gap: 10px;
+    }
+    button {
+        padding: 20px 0 !important; /* Taller buttons for thumbs */
+        font-size: 0.85rem;
+    }
+
+    /* 6. SHREDDER (Bottom Left) */
+    .shredder {
+        bottom: 10px;
+        left: 10px;
+        transform: scale(0.8);
+        transform-origin: bottom left;
+    }
+    
+    /* 7. PINNED FOLDER (Bottom Right) */
+    #pinned-container {
+        bottom: 10px;
+        right: 10px;
+        width: 180px;
+        transform: scale(0.8);
+        transform-origin: bottom right;
+    }
+}
     
     .memo-item {
         padding: 10px;
