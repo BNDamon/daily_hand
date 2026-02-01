@@ -20,7 +20,6 @@
         background-image: 
             repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 2px, transparent 2px, transparent 12px),
             linear-gradient(to bottom, rgba(0,0,0,0.05), transparent);
-        
         font-family: 'Verdana', sans-serif;
         display: flex;
         flex-direction: column;
@@ -34,7 +33,7 @@
         -webkit-touch-callout: none;
     }
 
-    /* --- DEFAULT DESKTOP STYLES (Base) --- */
+    /* --- DESKTOP STYLES (Base) --- */
     
     /* 1. HUD (Yellow Post-it) */
     .post-it {
@@ -346,70 +345,81 @@
     @keyframes shake { 0% { transform: rotate(-1deg) translate(1px, 1px); } 25% { transform: rotate(1deg) translate(-2px, 0px); } 50% { transform: rotate(-2deg) translate(2px, -1px); } 75% { transform: rotate(0deg) translate(-1px, 2px); } 100% { transform: rotate(-1deg) translate(0, 0); } }
     .shake-active { animation: shake 0.3s; }
 
-    /* --- MOBILE VERTICAL OPTIMIZATION (THE CLEANUP) --- */
+    /* --- MOBILE OPTIMIZATION (THE "FRAME" LAYOUT) --- */
     @media (max-width: 600px) {
         
         /* 1. Remove Clutter */
         .instructions { display: none !important; }
         .tape { display: none !important; }
 
-        /* 2. Top Header Zone (Compact) */
+        /* 2. Top Corners (Small badges) */
         .title-card {
-            top: 10px; left: 10px;
-            transform: scale(0.7); transform-origin: top left;
+            top: 5px; left: 5px;
+            transform: scale(0.6); transform-origin: top left;
             z-index: 10;
         }
+        
         .radio {
-            top: 50px; /* Sits below the notch/status bar area */
-            left: 50%; transform: translateX(-50%) scale(0.8);
+            top: 5px; left: 50%; transform: translateX(-50%) scale(0.6);
             width: 160px; height: 40px;
             z-index: 9;
         }
-        .post-it { /* HUD */
-            top: 10px; right: 10px;
-            transform: scale(0.7) rotate(2deg); transform-origin: top right;
-            padding: 15px; width: 120px;
+
+        /* 3. Right Column (The Stack) */
+        /* Yellow HUD (Top Right) */
+        .hud.post-it {
+            top: 5px !important; right: 5px !important;
+            transform: scale(0.6) rotate(2deg) !important; transform-origin: top right;
+            width: 120px; padding: 15px;
+            z-index: 12;
         }
 
-        /* 3. Right-Side Stack (Goal & Shop) - Tucked away */
+        /* Blue Daily Goal (Below Yellow) */
         #daily-goal-note {
-            top: 90px !important; right: 10px !important;
-            transform: scale(0.7) rotate(-1deg); transform-origin: top right;
-            z-index: 8;
-        }
-        .shop-card {
-            top: 160px !important; right: 10px !important;
-            transform: scale(0.7) rotate(1deg); transform-origin: top right;
-            z-index: 7;
+            top: 85px !important; right: 5px !important;
+            transform: scale(0.6) rotate(-1deg) !important; transform-origin: top right;
+            width: 120px; z-index: 11;
         }
 
-        /* 4. The Hero Card (Centered & Big) */
+        /* White Shop Card (Below Blue) */
+        .shop-card {
+            top: 155px !important; right: 5px !important;
+            transform: scale(0.6) rotate(1deg) !important; transform-origin: top right;
+            z-index: 10;
+        }
+
+        /* 4. Bottom Corners */
+        .shredder {
+            bottom: 5px; left: 5px;
+            transform: scale(0.6); transform-origin: bottom left;
+            z-index: 20;
+        }
+        
+        #pinned-container {
+            bottom: 5px; right: 5px;
+            transform: scale(0.6); transform-origin: bottom right;
+            width: 160px; z-index: 20;
+        }
+
+        /* 5. Center Stage (Main Card) */
+        /* Big, centered, filling the empty space */
         .card {
             position: absolute;
             top: 55%; left: 50%;
-            transform: translate(-50%, -50%) rotate(-1deg);
-            width: 85% !important; height: 50vh !important;
+            transform: translate(-50%, -50%) rotate(-1deg) !important;
+            width: 85% !important; 
+            height: 55vh !important; /* Fixed height to keep footer clear */
             padding: 20px !important;
             min-height: auto;
+            margin: 0 !important;
+            z-index: 5;
         }
+
         .headline { font-size: 1.3rem; margin-bottom: 10px; }
         .summary { font-size: 0.95rem; line-height: 1.3; }
-        .source-tag { padding: 4px 8px; font-size: 0.8rem; margin-bottom: 15px; }
-
-        /* 5. Bottom Action Zone (Touch Friendly) */
         .actions { gap: 8px; }
+        
         button { padding: 18px 0 !important; font-size: 0.9rem; }
-
-        /* 6. Corner Utilities */
-        .shredder {
-            bottom: 10px; left: 10px;
-            transform: scale(0.7); transform-origin: bottom left;
-        }
-        #pinned-container {
-            bottom: 10px; right: 10px;
-            transform: scale(0.7); transform-origin: bottom right;
-            width: 180px;
-        }
 
         /* Modal Fixes */
         .memo-paper { width: 95%; padding: 20px; transform: rotate(0deg); }
