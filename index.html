@@ -20,6 +20,7 @@
         background-image: 
             repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 2px, transparent 2px, transparent 12px),
             linear-gradient(to bottom, rgba(0,0,0,0.05), transparent);
+        
         font-family: 'Verdana', sans-serif;
         display: flex;
         flex-direction: column;
@@ -33,7 +34,7 @@
         -webkit-touch-callout: none;
     }
 
-    /* --- DESKTOP STYLES (Base) --- */
+    /* --- DESKTOP / BASE STYLES --- */
     
     /* 1. HUD (Yellow Post-it) */
     .post-it {
@@ -102,7 +103,7 @@
     }
     .radio-knob:active { transform: scale(0.9); }
 
-    /* 4. INSTRUCTIONS (Hide on Mobile) */
+    /* 4. INSTRUCTIONS (Hidden on Mobile) */
     .instructions {
         position: absolute;
         top: 180px; left: 60px;
@@ -239,51 +240,7 @@
     #btn-pin:hover { background: #74b9ff; color: white; text-shadow: 1px 1px 0 #000; }
     .btn-read:hover { background: #ff7675; color: white; text-shadow: 1px 1px 0 #000; }
 
-    /* --- ANIMATIONS & FX --- */
-    @keyframes deal { 0% { transform: translateY(-100vh) rotate(5deg); opacity: 0; } 60% { transform: translateY(20px) rotate(-3deg); opacity: 1; } 80% { transform: translateY(-10px) rotate(0deg); } 100% { transform: translateY(0) rotate(-1deg); } }
-    @keyframes banishFly { 0% { transform: rotate(-1deg); } 100% { transform: translateX(-120%) rotate(-45deg); opacity: 0; } }
-    @keyframes pinFly { 0% { transform: rotate(-1deg); } 100% { transform: translate(300px, 400px) scale(0.2) rotate(45deg); opacity: 0; } }
-    @keyframes stampSlam { 0% { opacity: 0; transform: scale(5) rotate(10deg); } 70% { opacity: 1; transform: scale(0.8) rotate(-5deg); } 100% { transform: scale(1) rotate(-2deg); } }
-    .anim-deal { animation: deal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-    .anim-banish { animation: banishFly 0.5s ease-in forwards; }
-    .anim-pin { animation: pinFly 0.6s ease-in forwards; }
-    .anim-stamp { animation: stampSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.4s; opacity: 0; }
-    
-    .floating-feedback {
-        position: absolute; top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        font-family: 'Courier New', Courier, monospace;
-        font-weight: 900; font-size: 1.5rem;
-        pointer-events: none; z-index: 1000;
-        text-shadow: 2px 2px 0 #fff;
-        animation: floatUp 1s ease-out forwards;
-    }
-    @keyframes floatUp { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -150%) scale(1.2); opacity: 0; } }
-
-    .coffee-fx {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: radial-gradient(circle, rgba(255, 165, 2, 0) 40%, rgba(211, 84, 0, 0.4) 100%);
-        opacity: 0; pointer-events: none; z-index: 900; transition: opacity 0.5s;
-    }
-    body.caffeinated .coffee-fx { opacity: 1; }
-    @keyframes coffeeShake { 0% { transform: translate(0,0); } 25% { transform: translate(-2px, 2px); } 50% { transform: translate(2px, -2px); } 75% { transform: translate(-2px, -2px); } 100% { transform: translate(0,0); } }
-    body.caffeinated .game-area { animation: coffeeShake 0.2s infinite; }
-
-    .vignette-overlay {
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        pointer-events: none; z-index: 90;
-        background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0) 100%);
-        transition: background 0.5s ease;
-    }
-    body.sanity-3 .vignette-overlay { background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0) 100%); }
-    body.sanity-2 .vignette-overlay { background: radial-gradient(circle, transparent 50%, rgba(60, 40, 0, 0.1) 100%); }
-    body.sanity-1 .vignette-overlay { background: radial-gradient(circle, transparent 40%, rgba(100, 0, 0, 0.3) 100%); }
-
-    /* Traits */
-    .trait-clickbait { border-color: #ff00ff !important; color: #ff00ff !important; transform: rotate(180deg) !important; font-family: 'Comic Sans MS', sans-serif !important; }
-    .trait-premium { border-color: #f1c40f !important; color: #b7950b !important; background: rgba(241, 196, 15, 0.1); border: 3px double #f1c40f !important; }
-
-    /* Modals & Shop Internal */
+    /* 10. MODALS & SHOP INTERNALS */
     .hidden { display: none !important; }
     #shop-modal, .modal-overlay {
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -291,11 +248,12 @@
         display: flex; justify-content: center; align-items: center;
         backdrop-filter: blur(2px);
     }
-    .shop-paper {
+    .shop-paper, .memo-paper {
         width: 400px; background: #fff; padding: 30px;
         font-family: 'Courier New', monospace; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         transform: rotate(-1deg); border: 1px solid #ccc;
     }
+    .memo-paper { background: #fdfbf7; max-width: 500px; }
     .shop-header { text-align: center; font-size: 1.5rem; font-weight: 900; border-bottom: 3px double #000; margin-bottom: 20px; }
     .shop-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px dashed #ccc; }
     .item-icon { font-size: 2rem; margin-right: 15px; }
@@ -306,15 +264,7 @@
     .buy-btn:disabled { background: #95a5a6; cursor: not-allowed; }
     .purchased { background: #333 !important; content: "OWNED"; }
     #close-shop { width: 100%; margin-top: 20px; padding: 10px; background: #c0392b; color: white; border: none; font-weight: bold; cursor: pointer; }
-
-    .memo-paper {
-        background: #fdfbf7; width: 90%; max-width: 500px;
-        padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        font-family: 'Courier New', monospace; border: 1px solid #dcdde1;
-        position: relative; transform: rotate(-1deg);
-        display: flex; flex-direction: column;
-    }
-    .memo-header { display: flex; justify-content: space-between; font-size: 0.7rem; color: #7f8c8d; margin-bottom: 20px; text-transform: uppercase; }
+    
     .memo-item { background: rgba(0,0,0,0.03); padding: 12px; border-left: 4px solid #2d3436; margin-bottom: 10px; }
     .memo-item strong { display: block; font-size: 0.85rem; margin-bottom: 3px; }
     .memo-item span { font-size: 0.8rem; line-height: 1.4; color: #444; }
@@ -322,120 +272,121 @@
     .stamp-button:hover { transform: scale(1.02); background: #d63031; }
     .stamp-button:active { transform: scale(0.98); }
 
-    .charge-bar-container { width: 100%; height: 8px; background: #b2bec3; margin-bottom: 8px; border: 1px solid #636e72; }
-    .charge-bar-fill { height: 100%; background: #0984e3; transition: width 0.3s, background 0.3s; }
-    .charge-ready { background: #00b894 !important; }
-    #btn-shred { width: 100%; padding: 5px; font-size: 0.7rem; background: #636e72; color: white; border: none; cursor: not-allowed; box-shadow: none; transform: none; }
-    #btn-shred:enabled { background: #d63031; cursor: pointer; box-shadow: 0 3px 0 #c0392b; }
-    #btn-shred:active { transform: translateY(2px); box-shadow: none; }
-    @keyframes shredEffect { 0% { transform: scale(1) translate(0,0); } 20% { transform: scale(0.9) translate(-50px, 150px) rotate(-10deg); opacity: 1; } 100% { transform: scale(0.5) translate(-60px, 300px) rotate(-20deg); opacity: 0; } }
-    .anim-shred { animation: shredEffect 0.6s ease-in forwards; }
-
-    #win-screen { display: none; text-align: center; }
-    .win-title { font-size: 2rem !important; margin-top: 0; color: #c0392b; }
+    /* FX, RESET, MISC */
+    .floating-feedback {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: 900; font-size: 1.5rem;
+        pointer-events: none; z-index: 1000;
+        text-shadow: 2px 2px 0 #fff;
+        animation: floatUp 1s ease-out forwards;
+    }
+    @keyframes floatUp { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -150%) scale(1.2); opacity: 0; } }
+    @keyframes deal { 0% { transform: translateY(-100vh) rotate(5deg); opacity: 0; } 60% { transform: translateY(20px) rotate(-3deg); opacity: 1; } 100% { transform: translateY(0) rotate(-1deg); } }
+    @keyframes banishFly { 0% { transform: rotate(-1deg); } 100% { transform: translateX(-120%) rotate(-45deg); opacity: 0; } }
+    @keyframes pinFly { 0% { transform: rotate(-1deg); } 100% { transform: translate(300px, 400px) scale(0.2) rotate(45deg); opacity: 0; } }
+    @keyframes stampSlam { 0% { opacity: 0; transform: scale(5) rotate(10deg); } 70% { opacity: 1; transform: scale(0.8) rotate(-5deg); } 100% { transform: scale(1) rotate(-2deg); } }
+    .anim-deal { animation: deal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .anim-banish { animation: banishFly 0.5s ease-in forwards; }
+    .anim-pin { animation: pinFly 0.6s ease-in forwards; }
+    .anim-stamp { animation: stampSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.4s; opacity: 0; }
+    .coffee-fx { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255, 165, 2, 0) 40%, rgba(211, 84, 0, 0.4) 100%); opacity: 0; pointer-events: none; z-index: 900; transition: opacity 0.5s; }
+    body.caffeinated .coffee-fx { opacity: 1; }
+    .vignette-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 90; background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0) 100%); transition: background 0.5s ease; }
+    body.sanity-3 .vignette-overlay { background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0) 100%); }
+    body.sanity-2 .vignette-overlay { background: radial-gradient(circle, transparent 50%, rgba(60, 40, 0, 0.1) 100%); }
+    body.sanity-1 .vignette-overlay { background: radial-gradient(circle, transparent 40%, rgba(100, 0, 0, 0.3) 100%); }
+    .trait-clickbait { border-color: #ff00ff !important; color: #ff00ff !important; transform: rotate(180deg) !important; font-family: 'Comic Sans MS', sans-serif !important; }
+    .trait-premium { border-color: #f1c40f !important; color: #b7950b !important; background: rgba(241, 196, 15, 0.1); border: 3px double #f1c40f !important; }
+    #dev-reset-btn { margin-top: 8px; background: #c0392b; color: white; border: none; font-size: 0.6rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 2px 0 #96281b; width: 100%; }
+    
     .summary-paper { background: #fdfbf7; padding: 40px; border: 2px solid #2d3436; box-shadow: 10px 10px 0 rgba(0,0,0,0.1); font-family: 'Courier New', Courier, monospace; max-width: 350px; margin: auto; transform: rotate(1deg); }
     .summary-line { margin: 10px 0; font-size: 1.1rem; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
     .summary-stats { text-align: left; margin: 20px 0; }
     .stat { margin: 5px 0; font-size: 0.9rem; }
-    
-    #dev-reset-btn { margin-top: 8px; background: #c0392b; color: white; border: none; font-size: 0.6rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 2px 0 #96281b; width: 100%; }
-    #dev-reset-btn:active { transform: translateY(2px); box-shadow: none; }
-    #dev-reset-btn:hover { background: #e74c3c; }
+    .win-title { font-size: 2rem !important; margin-top: 0; color: #c0392b; }
 
-    @keyframes shake { 0% { transform: rotate(-1deg) translate(1px, 1px); } 25% { transform: rotate(1deg) translate(-2px, 0px); } 50% { transform: rotate(-2deg) translate(2px, -1px); } 75% { transform: rotate(0deg) translate(-1px, 2px); } 100% { transform: rotate(-1deg) translate(0, 0); } }
-    .shake-active { animation: shake 0.3s; }
-
-    /* --- MOBILE OPTIMIZATION (THE "FRAME" LAYOUT) --- */
+    /* --- MOBILE OPTIMIZATION (THE CLEAN FRAME) --- */
     @media (max-width: 600px) {
         
-        /* 1. Remove Clutter */
-        .instructions { display: none !important; }
-        .tape { display: none !important; }
+        /* 1. HIDE RESET & CLUTTER */
+        #dev-reset-btn, .instructions, .tape { display: none !important; }
 
-        /* 2. Top Corners (Small badges) */
+        /* 2. HEADER ITEMS (Pinned to top edges) */
         .title-card {
             top: 5px; left: 5px;
             transform: scale(0.6); transform-origin: top left;
-            z-index: 10;
+            z-index: 20;
+            padding: 10px;
         }
         
         .radio {
-            top: 5px; left: 50%; transform: translateX(-50%) scale(0.6);
-            width: 160px; height: 40px;
-            z-index: 9;
+            top: 5px; left: 50%; transform: translateX(-50%) scale(0.65);
+            width: 160px; z-index: 10;
         }
 
-        /* 3. Right Column (The Stack) */
-        /* Yellow HUD (Top Right) */
         .hud.post-it {
             top: 5px !important; right: 5px !important;
             transform: scale(0.6) rotate(2deg) !important; transform-origin: top right;
-            width: 120px; padding: 15px;
-            z-index: 12;
+            width: 120px; padding: 15px; z-index: 20;
         }
 
-        /* Blue Daily Goal (Below Yellow) */
+        /* 3. RIGHT COLUMN STACK */
         #daily-goal-note {
-            top: 85px !important; right: 5px !important;
+            top: 80px !important; right: 5px !important;
             transform: scale(0.6) rotate(-1deg) !important; transform-origin: top right;
-            width: 120px; z-index: 11;
+            z-index: 18;
         }
 
-        /* White Shop Card (Below Blue) */
         .shop-card {
-            top: 155px !important; right: 5px !important;
+            top: 150px !important; right: 5px !important;
             transform: scale(0.6) rotate(1deg) !important; transform-origin: top right;
-            z-index: 10;
+            z-index: 16;
         }
 
-        /* 4. Bottom Corners */
+        /* 4. FOOTER CORNERS */
         .shredder {
             bottom: 5px; left: 5px;
-            transform: scale(0.6); transform-origin: bottom left;
+            transform: scale(0.65); transform-origin: bottom left;
             z-index: 20;
         }
         
         #pinned-container {
             bottom: 5px; right: 5px;
-            transform: scale(0.6); transform-origin: bottom right;
+            transform: scale(0.65); transform-origin: bottom right;
             width: 160px; z-index: 20;
         }
 
-        /* 5. Center Stage (Main Card) */
-        /* Big, centered, filling the empty space */
+        /* 5. CENTER STAGE (Main Card) */
         .card {
             position: absolute;
-            top: 55%; left: 50%;
-            transform: translate(-50%, -50%) rotate(-1deg) !important;
+            top: 50% !important; left: 50% !important;
+            transform: translate(-50%, -50%) rotate(-1deg) scale(0.85) !important;
             width: 85% !important; 
-            height: 55vh !important; /* Fixed height to keep footer clear */
-            padding: 20px !important;
-            min-height: auto;
+            height: 55vh !important;
             margin: 0 !important;
             z-index: 5;
         }
 
-        /* 6. MOBILE SPECIFIC ANIMATION */
-        /* Override animation to drop to center instead of top-left */
+        /* Mobile specific animation to land in CENTER, not top */
         .anim-deal { animation: dealMobile 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
         
         @keyframes dealMobile {
-            0% { transform: translate(-50%, -150vh) rotate(5deg); opacity: 0; }
-            60% { transform: translate(-50%, -45%) rotate(-3deg); opacity: 1; } /* Bounce past center */
-            80% { transform: translate(-50%, -55%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(-1deg); } /* Land at center */
+            0% { transform: translate(-50%, -150vh) rotate(5deg) scale(0.85); opacity: 0; }
+            100% { transform: translate(-50%, -50%) rotate(-1deg) scale(0.85); opacity: 1; }
         }
 
+        /* Typography Scaling */
         .headline { font-size: 1.3rem; margin-bottom: 10px; }
-        .summary { font-size: 0.95rem; line-height: 1.3; }
+        .summary { font-size: 0.95rem; line-height: 1.35; }
+        .source-tag { transform: scale(0.8) rotate(-2deg); transform-origin: top left; margin-bottom: 15px; }
         .actions { gap: 8px; }
-        
-        button { padding: 18px 0 !important; font-size: 0.9rem; }
+        button { padding: 15px 0 !important; font-size: 0.85rem; }
 
         /* Modal Fixes */
-        .memo-paper { width: 95%; padding: 20px; transform: rotate(0deg); }
+        .memo-paper, .shop-paper { width: 90%; padding: 20px; transform: rotate(0deg); }
         .memo-item { padding: 10px; font-size: 0.8rem; }
-        .stamp-button { padding: 20px; font-size: 1.2rem; }
     }
 </style>
 </head>
