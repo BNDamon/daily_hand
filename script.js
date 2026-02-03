@@ -1,6 +1,7 @@
 // ==========================================
 // 1. CONFIGURATION & STATE
 // ==========================================
+import { StatusBar } from '@capacitor/status-bar';
 const STARTING_LIVES = 3;
 
 const STATIONS = [
@@ -147,7 +148,12 @@ function triggerNextDay() {
     location.reload();
 }
 
+async function hideStatusBar() {
+  await StatusBar.hide();
+};
+
 async function init() {
+    await hideStatusBar();
     try {
         const savedData = localStorage.getItem('gameState');
         const highScoreData = localStorage.getItem('highScore');
@@ -648,7 +654,6 @@ function render() {
     document.getElementById('skip-tokens').innerText = lifeStr || "DEAD";
     document.getElementById('xp-count').innerHTML = `${state.xp} XP <br> READ: ${state.articlesRead}`;
 
-    // --- GAME OVER CHECK ---
     if (state.isGameOver) {
         cardContainer.style.display = 'none';
         winScreen.style.display = 'flex';
@@ -658,21 +663,20 @@ function render() {
         winScreen.style.display = 'none';
         winScreen.classList.add('hidden');
         
-        // --- LOADING CHECK ---
-        // If deck is empty but we are NOT in Game Over, it means we are loading.
+        // If deck is empty but game isn't over, we are LOADING news
         if (state.deck.length === 0) {
             document.getElementById('headline').innerText = "CLOCKING IN...";
             document.getElementById('summary').innerText = "Fetching reports. Please wait...";
             document.getElementById('byline').innerText = "SYSTEM BUSY";
-            sourceTag.style.opacity = "0";
             
-            skipBtn.disabled = true;
-            readBtn.disabled = true;
-            pinBtn.disabled = true;
+            // Disable buttons while loading
+            document.getElementById('btn-skip').disabled = true;
+            document.getElementById('btn-read').disabled = true;
+            document.getElementById('btn-pin').disabled = true;
+            
             cardContainer.style.display = 'flex';
             return;
         }
-        cardContainer.style.display = 'flex';
     }
 
     const card = state.deck[0];

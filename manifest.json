@@ -1,15 +1,23 @@
 {
-  "manifest_version": 3,
-  "name": "The Daily Tab",
-  "version": "1.0",
-  "description": "Streamlined news from RSS feeds.",
-  "chrome_url_overrides": {
-    "newtab": "newtab.html"
-  },
-  "permissions": ["storage"],
-  "host_permissions": [
-    "https://feeds.bbci.co.uk/*",
-    "https://rss.nytimes.com/*",
-    "https://www.theverge.com/*"
+  "name": "Daily Hand: Roguelike News",
+  "short_name": "Daily Hand",
+  "description": "A roguelike news-sorting simulation.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#d2ccc4",
+  "theme_color": "#d2ccc4",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

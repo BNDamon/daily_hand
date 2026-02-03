@@ -17,6 +17,13 @@
         --safe-top: env(safe-area-inset-top, 20px);
     }
 
+    #app-frame {
+    padding-top: var(--safe-top);
+    height: 100dvh; /* Dynamic viewport height to fill the screen */
+    display: flex;
+    flex-direction: column;
+    }
+
     body {
         background-color: var(--desk);
         /* BACKGROUND EXTENDS INFINITELY HERE */
