@@ -17,255 +17,186 @@
 
     body {
         background-color: var(--desk);
+        /* BACKGROUND EXTENDS INFINITELY HERE */
         background-image: 
             repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 2px, transparent 2px, transparent 12px),
             linear-gradient(to bottom, rgba(0,0,0,0.05), transparent);
         
         font-family: 'Verdana', sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        height: 100vh;
         margin: 0;
         overflow: hidden;
-        padding-top: var(--safe-top);
+        height: 100vh;
+        width: 100vw;
+        
+        /* CENTERS THE GAME FRAME ON DESKTOP */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        
         -webkit-user-select: none;
         user-select: none;
         -webkit-touch-callout: none;
     }
 
-    /* --- DESKTOP / BASE STYLES --- */
+    /* --- THE LOCK --- */
+    /* This forces the game layout to stay "Mobile Sized" in the center */
+    #app-frame {
+        position: relative;
+        width: 100%;
+        max-width: 600px; /* Locked to 600px */
+        height: 100%;
+        max-height: 100vh;
+        overflow: hidden;
+        /* Optional shadow to separate game from infinite desk */
+        box-shadow: 0 0 50px rgba(0,0,0,0.1); 
+    }
+
+    /* --- UI ELEMENTS (Using your Mobile Positioning as Default) --- */
     
-    /* 1. HUD (Yellow Post-it) */
-    .post-it {
+    /* 1. HEADER ITEMS */
+    .title-card {
         position: absolute;
-        top: 30px; right: 40px; 
+        top: 5px; left: 5px;
+        background: white; padding: 10px;
+        border: 1px solid #bdc3c7; box-shadow: 3px 3px 5px rgba(0,0,0,0.1);
+        transform: scale(0.8); transform-origin: top left;
+        z-index: 20; text-align: center;
+    }
+    .app-name { font-family: 'Courier New', monospace; font-weight: 900; font-size: 1.5rem; color: black; border-bottom: 3px solid var(--accent); padding-bottom: 5px; margin-bottom: 5px; }
+    .version { font-size: 0.7rem; color: #555; font-weight: bold; letter-spacing: 1px; }
+
+    .hud.post-it {
+        position: absolute;
+        top: 5px; right: 5px; 
         background: #f1c40f; 
-        padding: 20px; width: 140px;
+        padding: 15px; width: 120px;
         box-shadow: 2px 4px 8px rgba(0,0,0,0.2);
-        transform: rotate(2deg); 
-        font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
-        color: #000; font-weight: bold;
-        z-index: 10;
-        border-bottom-right-radius: 40px 5px;
+        transform: scale(0.6) rotate(2deg); transform-origin: top right;
+        font-family: 'Comic Sans MS', sans-serif; color: #000; font-weight: bold;
+        z-index: 20; border-bottom-right-radius: 40px 5px;
     }
     .stat-row { margin-bottom: 8px; font-size: 0.95rem; }
     #skip-tokens { color: #c0392b; letter-spacing: 2px; font-size: 1.1rem; }
     .key-word { color: #000; background: rgba(255, 234, 167, 0.8); padding: 0 4px; border-radius: 2px; }
-        
-    /* 2. TITLE CARD */
-    .title-card {
-        position: absolute;
-        top: 40px; left: 40px;
-        background: white;
-        padding: 15px 25px;
-        border: 1px solid #bdc3c7;
-        box-shadow: 3px 3px 5px rgba(0,0,0,0.1);
-        transform: rotate(-3deg);
-        z-index: 5;
-        text-align: center;
-    }
-    .app-name {
-        font-family: 'Courier New', monospace;
-        font-weight: 900;
-        font-size: 1.5rem;
-        color: black; 
-        border-bottom: 3px solid var(--accent); 
-        padding-bottom: 5px; margin-bottom: 5px;
-    }
-    .version { font-size: 0.7rem; color: #555; font-weight: bold; letter-spacing: 1px; }
 
-    /* 3. THE RADIO */
     .radio {
         position: absolute;
-        top: -10px; left: 50%; transform: translateX(-50%);
-        width: 180px; height: 50px;
-        background: #2d3436;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-        z-index: 20;
-        display: flex; align-items: center; justify-content: space-around;
-        padding: 0 10px;
-        border: 2px solid #636e72; border-top: none;
-        top: calc(var(--safe-top) - 10px);
+        top: 5px; left: 50%; transform: translateX(-50%) scale(1);
+        width: 160px; height: 40px; background: #2d3436;
+        border-radius: 0 0 10px 10px; box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+        z-index: 10; display: flex; align-items: center; justify-content: space-around;
+        padding: 0 10px; border: 2px solid #636e72; border-top: none;
     }
-    .radio-label {
-        color: #fab1a0; font-family: 'Courier New', monospace;
-        font-weight: bold; font-size: 0.8rem;
-        text-shadow: 0 0 5px #fab1a0; width: 100px; text-align: center;
-    }
-    .radio-knob {
-        width: 30px; height: 30px;
-        background: #b2bec3; border-radius: 50%;
-        border: 2px solid #636e72;
-        box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5);
-        cursor: pointer; transition: transform 0.2s;
-    }
+    .radio-label { color: #fab1a0; font-family: 'Courier New', monospace; font-weight: bold; font-size: 0.8rem; text-shadow: 0 0 5px #fab1a0; width: 100px; text-align: center; }
+    .radio-knob { width: 30px; height: 30px; background: #b2bec3; border-radius: 50%; border: 2px solid #636e72; box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.2s; }
     .radio-knob:active { transform: scale(0.9); }
 
-    /* 4. INSTRUCTIONS (Hidden on Mobile) */
-    .instructions {
-        position: absolute;
-        top: 180px; left: 60px;
-        background: #fff; width: 200px;
-        padding: 20px; padding-top: 35px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-        transform: rotate(1deg);
-        font-family: 'Courier New', Courier, monospace; 
-        font-weight: bold; font-size: 0.75rem; line-height: 1.6; color: #2d3436;     
-        background-image: repeating-linear-gradient(white 0px, white 24px, #a4b0be 25px);
-        z-index: 4;
-    }
-    .tape {
-        position: absolute; top: -15px; left: 35%;
-        width: 60px; height: 30px;
-        background: rgba(255, 255, 255, 0.4);
-        border-left: 1px solid rgba(255,255,255,0.3);
-        border-right: 1px solid rgba(255,255,255,0.3);
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        transform: rotate(-2deg); backdrop-filter: blur(2px);
-    }
-    .rule-item { margin-bottom: 12px; }
-
-    /* 5. SHOP CARD */
+    /* 2. SIDE FRAME ITEMS */
+    
+    /* Shop: Pinned Left, Under Title */
     .shop-card {
-    position: absolute;
-    /* Reduced top and left values to shift it up and left */
-    top: 5px !important; 
-    left: 0px !important;
-    right: auto !important;
-    
-    width: 140px; 
-    height: 70px;
-    background: #f7f9fa; 
-    padding: 15px;
-    border: 1px solid #b2bec3; 
-    border-left: 4px solid #2c3e50; 
-    box-shadow: 2px 4px 10px rgba(0,0,0,0.1);
-    
-    /* Origin ensures the rotation happens from the top-left corner */
-    transform: scale(0.6) rotate(-2deg) !important; 
-    transform-origin: top left;
-    
-    cursor: pointer; 
-    z-index: 15; /* Increased z-index to ensure visibility */
-    text-align: center; 
-    font-family: 'Courier New', monospace;
-    transition: transform 0.2s;
+        position: absolute;
+        top: 85px; left: 5px;
+        right: auto;
+        width: 140px; height: 70px;
+        background: #f7f9fa; padding: 15px;
+        border: 1px solid #b2bec3; border-left: 4px solid #2c3e50; 
+        box-shadow: 2px 4px 10px rgba(0,0,0,0.1);
+        transform: scale(1) rotate(1deg); transform-origin: top left;
+        cursor: pointer; z-index: 16; text-align: center; font-family: 'Courier New', monospace;
+        transition: transform 0.2s;
     }
-    .shop-card:hover { transform: rotate(0deg) scale(1.05); box-shadow: 5px 10px 20px rgba(0,0,0,0.2); background: #ffffff; }
+    .shop-card:hover { transform: scale(0.9) rotate(1deg); background: #ffffff; }
     .shop-logo { font-size: 1.5rem; line-height: 1; margin-bottom: 5px; color: #2c3e50; }
     .shop-title { font-weight: 900; font-size: 0.65rem; color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 4px; margin-bottom: 4px; letter-spacing: -0.5px; }
     .shop-subtitle { font-size: 0.55rem; color: #7f8c8d; font-weight: bold; text-transform: uppercase; }
 
-    /* 6. SHREDDER */
+    /* Optimized Daily Quota styling */
+    #daily-goal-note {
+        position: absolute;
+        top: 110px; 
+        right: 5px;
+        
+        /* Reduced width and padding */
+        width: 90px; 
+        padding: 10px; 
+        
+        background: #74b9ff; 
+        box-shadow: 2px 4px 8px rgba(0,0,0,0.2);
+        
+        /* Shrink the scale further if needed (e.g., 0.6 instead of 0.85) */
+        transform: scale(0.85) rotate(-1deg) !important; 
+        transform-origin: top right;
+        
+        /* Smaller font for the tighter box */
+        font-family: 'Comic Sans MS', sans-serif; 
+        font-size: 0.65rem; 
+        font-weight: bold;
+        
+        z-index: 18; 
+        border-bottom-right-radius: 40px 5px;
+    }
+    .charge-bar-container { width: 100%; height: 8px; background: #b2bec3; margin-bottom: 8px; border: 1px solid #636e72; }
+    .charge-bar-fill { height: 100%; background: #0984e3; transition: width 0.3s, background 0.3s; }
+    .charge-ready { background: #00b894 !important; }
+
+    /* 3. FOOTER CORNERS */
     .shredder {
-        position: absolute; bottom: 40px; left: 20px;
-        width: 140px; z-index: 15;
-        transform: rotate(2deg); font-family: 'Courier New', monospace;
+        position: absolute; bottom: 5px; left: 5px;
+        width: 140px; z-index: 20;
+        transform: scale(1.2); transform-origin: bottom left;
+        font-family: 'Courier New', monospace;
     }
-    .shredder-top {
-        height: 20px; background: #636e72;
-        border-radius: 5px 5px 0 0; border-bottom: 2px solid #2d3436;
-        display: flex; justify-content: center; align-items: flex-end;
-    }
+    .shredder-top { height: 20px; background: #636e72; border-radius: 5px 5px 0 0; border-bottom: 2px solid #2d3436; display: flex; justify-content: center; align-items: flex-end; }
     .shredder-slot { width: 80%; height: 4px; background: #000; border-radius: 2px 2px 0 0; }
-    .shredder-body {
-        background: #dfe6e9; padding: 10px;
-        border: 1px solid #b2bec3; border-top: none;
-        box-shadow: 5px 5px 15px rgba(0,0,0,0.2); text-align: center;
-    }
+    .shredder-body { background: #dfe6e9; padding: 10px; border: 1px solid #b2bec3; border-top: none; box-shadow: 5px 5px 15px rgba(0,0,0,0.2); text-align: center; }
     .shredder-label { font-size: 0.6rem; font-weight: bold; color: #636e72; margin-bottom: 5px; }
-    
-    /* 7. ARCHIVE */
+    #btn-shred { width: 100%; padding: 5px; font-size: 0.7rem; background: #636e72; color: white; border: none; cursor: not-allowed; }
+    #btn-shred:enabled { background: #d63031; cursor: pointer; box-shadow: 0 3px 0 #c0392b; }
+
     #pinned-container {
-        background: #f1dfa5; width: 260px;
-        padding: 20px; padding-top: 35px;   
-        position: absolute; bottom: 50px; right: 60px;
-        transform: rotate(2deg); 
-        font-family: 'Courier New', monospace; color: #594f4f;      
-        font-size: 0.85rem; font-weight: bold; line-height: 1.4;
+        position: absolute; bottom: 5px; right: 5px;
+        width: 260px; padding: 20px; padding-top: 35px;   
+        background: #f1dfa5; 
+        transform: scale(0.9); transform-origin: bottom right;
+        font-family: 'Courier New', monospace; color: #594f4f; font-size: 0.85rem; font-weight: bold;
         border: 1px solid #d1c7ac; border-radius: 2px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 5;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 20;
     }
-    #pinned-container::before {
-        content: 'ARCHIVE'; position: absolute; top: -22px; left: 0;
-        width: 90px; height: 25px; background: #e6ce8c; 
-        border-radius: 5px 5px 0 0; border: 1px solid #d1c7ac; border-bottom: none;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.6rem; letter-spacing: 1px; color: rgba(0,0,0,0.4);
-    }
-    #pinned-container::after {
-        content: ''; position: absolute; z-index: -1; 
-        top: -10px; right: 10px; width: 80%; height: 20px;
-        background: #fff; transform: rotate(-1deg);
-        box-shadow: 0 0 2px rgba(0,0,0,0.1);
-    }
+    #pinned-container::before { content: 'ARCHIVE'; position: absolute; top: -22px; left: 0; width: 90px; height: 25px; background: #e6ce8c; border-radius: 5px 5px 0 0; border: 1px solid #d1c7ac; border-bottom: none; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; letter-spacing: 1px; color: rgba(0,0,0,0.4); }
+    #pinned-container::after { content: ''; position: absolute; z-index: -1; top: -10px; right: 10px; width: 80%; height: 20px; background: #fff; transform: rotate(-1deg); box-shadow: 0 0 2px rgba(0,0,0,0.1); }
 
-    /* 8. MAIN CARD */
-    .game-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; width: 100%; }
+    /* 4. CENTER STAGE (Main Card) */
+    .game-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
     .card {
-        background: var(--paper);
-        width: 400px; height: 560px; padding: 40px;
-        border: 1px solid #b2bec3;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.05), 15px 15px 30px rgba(0,0,0,0.2); 
+        pointer-events: auto;
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%) rotate(-1deg) scale(0.85);
+        width: 85%; height: 55vh;
+        
+        background: var(--paper); padding: 25px;
+        border: 1px solid #b2bec3; box-shadow: 0 1px 4px rgba(0,0,0,0.05), 15px 15px 30px rgba(0,0,0,0.2); 
         display: flex; flex-direction: column;
-        transform: rotate(-1deg); transition: transform 0.2s;
     }
-    .headline { 
-        font-family: 'Courier New', Courier, monospace; 
-        font-size: 1.7rem; font-weight: 900; color: black;     
-        margin-bottom: 20px; line-height: 1.2;
-        user-select: text; -webkit-user-select: text;
-    }
-    .summary { 
-        font-family: 'Georgia', serif; font-size: 1.15rem; line-height: 1.5; 
-        color: #2d3436; flex-grow: 1; 
-    }
-    .source-tag { 
-        border: 3px solid var(--ink); color: var(--ink);
-        padding: 6px 12px; font-weight: 900;
-        text-transform: uppercase; align-self: flex-start;
-        margin-bottom: 25px; letter-spacing: 1px;
-        opacity: 0.8; transform: rotate(-2deg);
-    }
-    .byline {
-        font-family: 'Verdana', sans-serif; font-size: 0.7rem; color: #7f8c8d;       
-        text-transform: uppercase; letter-spacing: 1px;
-        margin-bottom: 5px; font-weight: bold;
-        border-bottom: 1px solid #eee; padding-bottom: 5px; width: 100%;
-    }
+    
+    .headline { font-family: 'Courier New', Courier, monospace; font-size: 1.3rem; font-weight: 900; color: black; margin-bottom: 10px; line-height: 1.2; user-select: text; }
+    .summary { font-family: 'Georgia', serif; font-size: 0.95rem; line-height: 1.35; color: #2d3436; flex-grow: 1; }
+    .source-tag { border: 3px solid var(--ink); color: var(--ink); padding: 4px 10px; font-weight: 900; text-transform: uppercase; align-self: flex-start; margin-bottom: 15px; letter-spacing: 1px; opacity: 0.8; transform: scale(0.8) rotate(-2deg); transform-origin: top left; }
+    .byline { font-family: 'Verdana', sans-serif; font-size: 0.7rem; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; width: 100%; }
 
-    /* 9. BUTTONS */
-    .actions { display: flex; gap: 15px; margin-top: auto; }
-    button {
-        flex: 1; padding: 15px 0;
-        border: 2px solid var(--ink); background: white;
-        border-radius: 6px; font-weight: 900; 
-        cursor: pointer; font-size: 0.9rem; transition: 0.1s;
-        box-shadow: 4px 4px 0 var(--ink);
-        font-family: 'Verdana', sans-serif; color: var(--ink);
-    }
+    .actions { display: flex; gap: 8px; margin-top: 15px; }
+    button { flex: 1; padding: 15px 0; border: 2px solid var(--ink); background: white; border-radius: 6px; font-weight: 900; cursor: pointer; font-size: 0.85rem; transition: 0.1s; box-shadow: 4px 4px 0 var(--ink); font-family: 'Verdana', sans-serif; color: var(--ink); }
     button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
     button:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; transform: translate(2px, 2px); }
     .btn-skip:hover { background: #ffeaa7; }
-    #btn-pin:hover { background: #74b9ff; color: white; text-shadow: 1px 1px 0 #000; }
-    .btn-read:hover { background: #ff7675; color: white; text-shadow: 1px 1px 0 #000; }
+    #btn-pin:hover { background: #74b9ff; color: white; }
+    .btn-read:hover { background: #ff7675; color: white; }
 
-    /* 10. MODALS & SHOP INTERNALS */
+    /* Modals */
     .hidden { display: none !important; }
-    #shop-modal, .modal-overlay {
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.85); z-index: 1000;
-        display: flex; justify-content: center; align-items: center;
-        backdrop-filter: blur(2px);
-    }
-    .shop-paper, .memo-paper {
-        width: 400px; background: #fff; padding: 30px;
-        font-family: 'Courier New', monospace; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        transform: rotate(-1deg); border: 1px solid #ccc;
-    }
-    .memo-paper { background: #fdfbf7; max-width: 500px; }
+    .modal-overlay, #shop-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+    .shop-paper, .memo-paper { width: 90%; max-width: 400px; background: #fff; padding: 20px; font-family: 'Courier New', monospace; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: rotate(-1deg); border: 1px solid #ccc; }
     .shop-header { text-align: center; font-size: 1.5rem; font-weight: 900; border-bottom: 3px double #000; margin-bottom: 20px; }
     .shop-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px dashed #ccc; }
     .item-icon { font-size: 2rem; margin-right: 15px; }
@@ -276,321 +207,247 @@
     .buy-btn:disabled { background: #95a5a6; cursor: not-allowed; }
     .purchased { background: #333 !important; content: "OWNED"; }
     #close-shop { width: 100%; margin-top: 20px; padding: 10px; background: #c0392b; color: white; border: none; font-weight: bold; cursor: pointer; }
-    
-    .memo-item { background: rgba(0,0,0,0.03); padding: 12px; border-left: 4px solid #2d3436; margin-bottom: 10px; }
+    .memo-item { padding: 10px; font-size: 0.8rem; background: rgba(0,0,0,0.03); border-left: 4px solid #2d3436; margin-bottom: 10px; }
     .memo-item strong { display: block; font-size: 0.85rem; margin-bottom: 3px; }
-    .memo-item span { font-size: 0.8rem; line-height: 1.4; color: #444; }
-    .stamp-button { width: 100%; padding: 15px; margin-top: 10px; background: #c0392b; color: white; border: 2px dashed rgba(255,255,255,0.4); font-family: 'Courier New', monospace; font-weight: bold; font-size: 1rem; cursor: pointer; transition: transform 0.1s; }
-    .stamp-button:hover { transform: scale(1.02); background: #d63031; }
-    .stamp-button:active { transform: scale(0.98); }
+    .memo-item span { line-height: 1.4; color: #444; }
+    .stamp-button { width: 100%; padding: 15px; margin-top: 10px; background: #c0392b; color: white; border: 2px dashed rgba(255,255,255,0.4); font-family: 'Courier New', monospace; font-weight: bold; font-size: 1rem; cursor: pointer; }
 
-    /* FX, RESET, MISC */
-    .floating-feedback {
-        position: absolute; top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        font-family: 'Courier New', Courier, monospace;
-        font-weight: 900; font-size: 1.5rem;
-        pointer-events: none; z-index: 1000;
-        text-shadow: 2px 2px 0 #fff;
-        animation: floatUp 1s ease-out forwards;
-    }
+    /* FX & Hidden Elements */
+    #dev-reset-btn { display: none; }
+    .instructions, .tape { display: none; } 
+    
+    .floating-feedback { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Courier New', Courier, monospace; font-weight: 900; font-size: 1.5rem; pointer-events: none; z-index: 1000; text-shadow: 2px 2px 0 #fff; animation: floatUp 1s ease-out forwards; }
     @keyframes floatUp { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -150%) scale(1.2); opacity: 0; } }
-    @keyframes deal { 0% { transform: translateY(-100vh) rotate(5deg); opacity: 0; } 60% { transform: translateY(20px) rotate(-3deg); opacity: 1; } 100% { transform: translateY(0) rotate(-1deg); } }
+    
+    @keyframes dealMobile {
+        0% { transform: translate(-50%, -150vh) rotate(5deg) scale(0.85); opacity: 0; }
+        100% { transform: translate(-50%, -50%) rotate(-1deg) scale(0.85); opacity: 1; }
+    }
+    .anim-deal { animation: dealMobile 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
+    
     @keyframes banishFly { 0% { transform: rotate(-1deg); } 100% { transform: translateX(-120%) rotate(-45deg); opacity: 0; } }
-    @keyframes pinFly { 0% { transform: rotate(-1deg); } 100% { transform: translate(300px, 400px) scale(0.2) rotate(45deg); opacity: 0; } }
-    @keyframes stampSlam { 0% { opacity: 0; transform: scale(5) rotate(10deg); } 70% { opacity: 1; transform: scale(0.8) rotate(-5deg); } 100% { transform: scale(1) rotate(-2deg); } }
-    .anim-deal { animation: deal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
     .anim-banish { animation: banishFly 0.5s ease-in forwards; }
+    
+    @keyframes pinFly { 0% { transform: rotate(-1deg); } 100% { transform: translate(300px, 400px) scale(0.2) rotate(45deg); opacity: 0; } }
     .anim-pin { animation: pinFly 0.6s ease-in forwards; }
+    
+    @keyframes stampSlam { 0% { opacity: 0; transform: scale(5) rotate(10deg); } 70% { opacity: 1; transform: scale(0.8) rotate(-5deg); } 100% { transform: scale(1) rotate(-2deg); } }
     .anim-stamp { animation: stampSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.4s; opacity: 0; }
+    
+    @keyframes shredEffect { 0% { transform: scale(1) translate(0,0); } 20% { transform: scale(0.9) translate(-50px, 150px) rotate(-10deg); opacity: 1; } 100% { transform: scale(0.5) translate(-60px, 300px) rotate(-20deg); opacity: 0; } }
+    .anim-shred { animation: shredEffect 0.6s ease-in forwards; }
+
     .coffee-fx { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255, 165, 2, 0) 40%, rgba(211, 84, 0, 0.4) 100%); opacity: 0; pointer-events: none; z-index: 900; transition: opacity 0.5s; }
     body.caffeinated .coffee-fx { opacity: 1; }
     .vignette-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 90; background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0) 100%); transition: background 0.5s ease; }
     body.sanity-3 .vignette-overlay { background: radial-gradient(circle, transparent 60%, rgba(0,0,0,0) 100%); }
     body.sanity-2 .vignette-overlay { background: radial-gradient(circle, transparent 50%, rgba(60, 40, 0, 0.1) 100%); }
     body.sanity-1 .vignette-overlay { background: radial-gradient(circle, transparent 40%, rgba(100, 0, 0, 0.3) 100%); }
-    .trait-clickbait { border-color: #ff00ff !important; color: #ff00ff !important; transform: rotate(180deg) !important; font-family: 'Comic Sans MS', sans-serif !important; }
+    /* Fix for the flying tag */
+    .trait-clickbait { 
+        border-color: #ff00ff !important; 
+        color: #ff00ff !important; 
+        background: rgba(255, 0, 255, 0.05);
+        
+        /* Removed rotate(180deg). Now it just tilts awkwardly and gets bigger */
+        transform: scale(1.1) rotate(5deg) !important; 
+        
+        font-family: 'Comic Sans MS', sans-serif !important; 
+        text-shadow: 1px 1px 0px #000;
+    }
     .trait-premium { border-color: #f1c40f !important; color: #b7950b !important; background: rgba(241, 196, 15, 0.1); border: 3px double #f1c40f !important; }
-    #dev-reset-btn { margin-top: 8px; background: #c0392b; color: white; border: none; font-size: 0.6rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 2px 0 #96281b; width: 100%; }
     
-    .summary-paper { background: #fdfbf7; padding: 40px; border: 2px solid #2d3436; box-shadow: 10px 10px 0 rgba(0,0,0,0.1); font-family: 'Courier New', Courier, monospace; max-width: 350px; margin: auto; transform: rotate(1deg); }
+    #win-screen { 
+    z-index: 2000; 
+    position: absolute;
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    
+    /* This creates a centered "flex" container for the paper */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    pointer-events: auto !important; 
+    }
+    .summary-paper { 
+    background: #fdfbf7; 
+    padding: 40px; 
+    border: 2px solid #2d3436; 
+    box-shadow: 10px 10px 0 rgba(0,0,0,0.1); 
+    font-family: 'Courier New', Courier, monospace; 
+    max-width: 350px; 
+    width: 90%; /* Ensures it stays phone-width on mobile */
+
+    /* REMOVE top: 150px and position: relative */
+    /* Use fixed positioning to prevent jumping */
+    position: relative; 
+    
+    transform: rotate(1deg); 
+    margin: 0; /* Let flexbox handle centering */
+    }
+    #win-screen.hidden { display: none !important; }
     .summary-line { margin: 10px 0; font-size: 1.1rem; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
     .summary-stats { text-align: left; margin: 20px 0; }
     .stat { margin: 5px 0; font-size: 0.9rem; }
     .win-title { font-size: 2rem !important; margin-top: 0; color: #c0392b; }
-
-    /* --- MOBILE OPTIMIZATION (THE CLEAN FRAME) --- */
-    @media (max-width: 600px) {
-        
-        /* 1. HIDE RESET & CLUTTER */
-        #dev-reset-btn, .instructions, .tape { display: none !important; }
-
-        /* 2. HEADER ITEMS (Pinned to top edges) */
-        .title-card {
-            top: 5px; left: 5px;
-            transform: scale(0.6); transform-origin: top left;
-            z-index: 20;
-            padding: 10px;
-        }
-        
-        .radio {
-            top: 5px; left: 50%; transform: translateX(-50%) scale(0.65);
-            width: 160px; z-index: 10;
-        }
-
-        .hud.post-it {
-            top: 5px !important; right: 5px !important;
-            transform: scale(0.6) rotate(2deg) !important; transform-origin: top right;
-            width: 120px; padding: 15px; z-index: 20;
-        }
-
-        /* 3. RIGHT COLUMN STACK */
-        #daily-goal-note {
-            top: 80px !important; right: 5px !important;
-            transform: scale(0.6) rotate(-1deg) !important; transform-origin: top right;
-            z-index: 18;
-        }
-
-        .shop-card {
-            top: 90px !important; left: -50px !important;
-            transform: scale(0.6) rotate(1deg) !important; transform-origin: top right;
-            z-index: 16;
-        }
-
-        /* 4. FOOTER CORNERS */
-        .shredder {
-            bottom: 5px; left: 5px;
-            transform: scale(0.65); transform-origin: bottom left;
-            z-index: 20;
-        }
-        
-        #pinned-container {
-            bottom: 5px; right: 5px;
-            transform: scale(0.65); transform-origin: bottom right;
-            width: 160px; z-index: 20;
-        }
-
-        /* 5. CENTER STAGE (Main Card) */
-        .card {
-            position: absolute;
-            top: 50% !important; left: 50% !important;
-            transform: translate(-50%, -50%) rotate(-1deg) scale(0.85) !important;
-            width: 85% !important; 
-            height: 55vh !important;
-            margin: 0 !important;
-            z-index: 5;
-        }
-
-        /* Mobile specific animation to land in CENTER, not top */
-        .anim-deal { animation: dealMobile 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards !important; }
-        
-        @keyframes dealMobile {
-            0% { transform: translate(-50%, -150vh) rotate(5deg) scale(0.85); opacity: 0; }
-            100% { transform: translate(-50%, -50%) rotate(-1deg) scale(0.85); opacity: 1; }
-        }
-
-        /* Typography Scaling */
-        .headline { font-size: 1.3rem; margin-bottom: 10px; }
-        .summary { font-size: 0.95rem; line-height: 1.35; }
-        .source-tag { transform: scale(0.8) rotate(-2deg); transform-origin: top left; margin-bottom: 15px; }
-        .actions { gap: 8px; }
-        button { padding: 15px 0 !important; font-size: 0.85rem; }
-
-        /* Modal Fixes */
-        .memo-paper, .shop-paper { width: 90%; padding: 20px; transform: rotate(0deg); }
-        .memo-item { padding: 10px; font-size: 0.8rem; }
-    }
 </style>
 </head>
 <body>
 
-    <div id="coffee-overlay" class="coffee-fx"></div>
+    <div id="app-frame">
 
-    <div class="title-card">
-        <div class="app-name">DAILY HAND</div>
-        <div class="version">EST. 2025 • ROGUELIKE NEWS</div>
-        <button id="dev-reset-btn">⚠ HARD RESET</button>
-    </div>
+        <div id="coffee-overlay" class="coffee-fx"></div>
 
-    <div class="hud post-it">
-        <div class="stat-row">
-            <span>SKIPS:</span>
-            <span id="skip-tokens">♦ ♦ ♦</span> 
-        </div>
-        <div class="stat-row">
-            <span>XP:</span>
-            <span id="xp-count">0</span>
-        </div>
-    </div>
-
-    <div id="daily-goal-note" class="post-it" style="top: 220px; background: #74b9ff; transform: rotate(-2deg); font-size: 0.8rem;">
-    <div style="border-bottom: 1px solid rgba(0,0,0,0.2); margin-bottom: 5px; font-weight: 900;">DAILY QUOTA</div>
-    <div id="goal-text">READ 5 ARTICLES</div>
-    <div class="charge-bar-container" style="height: 6px; margin-top: 5px; background: rgba(0,0,0,0.1);">
-        <div id="goal-progress-bar" class="charge-bar-fill" style="width: 0%; background: #2980b9;"></div>
-    </div>
-</div>
-
-    <div id="radio-station" class="radio">
-    <div class="radio-dial">
-        <div class="dial-marker" id="dial-marker"></div>
-    </div>
-    <div class="radio-label" id="radio-label">BBC TECH</div>
-    <div class="radio-knob" id="radio-knob"></div>
-</div>
-
-<div id="vignette" class="vignette-overlay"></div>
-
-    <div class="instructions" id="run-log">
-        <div class="tape"></div> 
-        
-        <div class="rule-item" style="border-bottom: 2px dashed #bdc3c7; padding-bottom: 5px; margin-bottom: 10px;">
-            <div>FILES LEFT: <span id="deck-count" style="color:#d63031; font-family:'Comic Sans MS'">30</span></div>
-            <div>COMBO: <span id="combo-display" style="color:#d63031; font-family:'Comic Sans MS'">x1.0</span></div>
+        <div class="title-card">
+            <div class="app-name">DAILY HAND</div>
+            <div class="version">EST. 2025 • ROGUELIKE NEWS</div>
+            <button id="dev-reset-btn">⚠ HARD RESET</button>
         </div>
 
-        <div class="rule-item"><strong>OPERATIONAL GUIDE:</strong></div>
-        <div class="rule-item">❤️ <span class="key-word">SANITY</span>: 0 = TERMINATION.</div>
-        <div class="rule-item">🗑️ <span class="key-word">BANISH</span>: Costs 1 Heart.</div>
-        <div class="divider" style="margin: 5px 0; border-bottom: 1px dotted #ccc;"></div>
-        <div class="rule-item">⚠️ <span class="key-word">TRAPS</span>: Clickbait. Banish Free.</div>
-        <div class="rule-item">🔒 <span class="key-word">LOCKED</span>: Pay 50 XP to Open.</div>
-        <div class="rule-item">🥤 <span class="key-word">COFFEE</span>: Consumable. Restores HP.</div>
-    </div>
+        <div class="hud post-it">
+            <div class="stat-row">
+                <span>SKIPS:</span>
+                <span id="skip-tokens">♦ ♦ ♦</span> 
+            </div>
+            <div class="stat-row">
+                <span>XP:</span>
+                <span id="xp-count">0</span>
+            </div>
+        </div>
 
-    <div id="shop-catalog" class="shop-card">
-        <div class="shop-logo">♠</div>
-        <div class="shop-title">THE SHOP</div>
-        <div class="shop-subtitle" id="player-rank">UNPAID INTERN</div>
-    <div style="font-size: 0.5rem; margin-top:5px; color:#aaa;">CLICK TO OPEN</div>
-</div>
+        <div id="daily-goal-note" class="post-it" style="background: #74b9ff; transform: rotate(-2deg);">
+            <div style="border-bottom: 1px solid rgba(0,0,0,0.2); margin-bottom: 5px; font-weight: 900;">DAILY QUOTA</div>
+            <div id="goal-text">READ 5 ARTICLES</div>
+            <div class="charge-bar-container">
+                <div id="goal-progress-bar" class="charge-bar-fill" style="width: 0%; background: #2980b9;"></div>
+            </div>
+        </div>
 
-    <div id="shop-modal" class="hidden">
-        <div class="shop-paper">
-            <div class="shop-header">OFFICE SUPPLIES</div>
-            <div class="shop-balance">BUDGET: <span id="shop-xp">0</span> XP</div>
-            
-            <div class="shop-items">
-                <div class="shop-item" id="buy-mug">
-                    <div class="item-icon">☕</div>
-                    <div class="item-info">
-                        <div class="item-name">Golden Mug</div>
-                        <div class="item-desc">Start run with +1 Heart.</div>
+        <div id="radio-station" class="radio">
+            <div class="radio-dial">
+                <div class="dial-marker" id="dial-marker"></div>
+            </div>
+            <div class="radio-label" id="radio-label">BBC TECH</div>
+            <div class="radio-knob" id="radio-knob"></div>
+        </div>
+
+        <div id="vignette" class="vignette-overlay"></div>
+
+        <div class="instructions" id="run-log" style="display:none;">
+            <span id="deck-count"></span>
+            <span id="combo-display"></span>
+        </div>
+
+        <div id="shop-catalog" class="shop-card">
+            <div class="shop-logo">♠</div>
+            <div class="shop-title">THE SHOP</div>
+            <div class="shop-subtitle" id="player-rank">UNPAID INTERN</div>
+            <div style="font-size: 0.5rem; margin-top:5px; color:#aaa;">CLICK TO OPEN</div>
+        </div>
+
+        <div id="shop-modal" class="hidden">
+            <div class="shop-paper">
+                <div class="shop-header">OFFICE SUPPLIES</div>
+                <div class="shop-balance">BUDGET: <span id="shop-xp">0</span> XP</div>
+                <div class="shop-items">
+                    <div class="shop-item" id="buy-mug">
+                        <div class="item-icon">☕</div>
+                        <div class="item-info"><div class="item-name">Golden Mug</div><div class="item-desc">Start run with +1 Heart.</div></div>
+                        <button class="buy-btn" data-cost="500" data-id="mug">500 XP</button>
                     </div>
-                    <button class="buy-btn" data-cost="500" data-id="mug">500 XP</button>
-                </div>
-
-                <div class="shop-item" id="buy-pen">
-                    <div class="item-icon">✒️</div>
-                    <div class="item-info">
-                        <div class="item-name">Fountain Pen</div>
-                        <div class="item-desc">Trending cards give +15 Bonus XP.</div>
+                    <div class="shop-item" id="buy-pen">
+                        <div class="item-icon">✒️</div>
+                        <div class="item-info"><div class="item-name">Fountain Pen</div><div class="item-desc">Trending cards give +15 Bonus XP.</div></div>
+                        <button class="buy-btn" data-cost="1000" data-id="pen">1k XP</button>
                     </div>
-                    <button class="buy-btn" data-cost="1000" data-id="pen">1k XP</button>
-                </div>
-
-                <div class="shop-item" id="buy-glasses">
-                    <div class="item-icon">👓</div>
-                    <div class="item-info">
-                        <div class="item-name">Blue Light Glasses</div>
-                        <div class="item-desc">25% Chance to Banish for FREE.</div>
+                    <div class="shop-item" id="buy-glasses">
+                        <div class="item-icon">👓</div>
+                        <div class="item-info"><div class="item-name">Blue Light Glasses</div><div class="item-desc">25% Chance to Banish for FREE.</div></div>
+                        <button class="buy-btn" data-cost="2000" data-id="glasses">2k XP</button>
                     </div>
-                    <button class="buy-btn" data-cost="2000" data-id="glasses">2k XP</button>
-                </div>
-
-                <div class="shop-item" id="buy-rolodex">
-                    <div class="item-icon">📇</div>
-                    <div class="item-info">
-                        <div class="item-name">Rolodex</div>
-                        <div class="item-desc">Reveals the type of the NEXT card.</div>
+                    <div class="shop-item" id="buy-rolodex">
+                        <div class="item-icon">📇</div>
+                        <div class="item-info"><div class="item-name">Rolodex</div><div class="item-desc">Reveals the type of the NEXT card.</div></div>
+                        <button class="buy-btn" data-cost="3500" data-id="rolodex">3.5k XP</button>
                     </div>
-                    <button class="buy-btn" data-cost="3500" data-id="rolodex">3.5k XP</button>
+                </div>
+                <button id="close-shop">CLOSE CATALOG</button>
+            </div>
+        </div>
+
+        <div id="shredder-unit" class="shredder">
+            <div class="shredder-top"><div class="shredder-slot"></div></div>
+            <div class="shredder-body">
+                <div class="shredder-label">SHRED-O-MATIC</div>
+                <div class="charge-bar-container">
+                    <div id="shredder-bar" class="charge-bar-fill" style="width: 0%;"></div>
+                </div>
+                <button id="btn-shred" disabled>SHRED (0%)</button>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="card" id="card-container">
+                <div class="source-tag" id="source">LOADING...</div>
+                <div class="byline" id="byline"></div> 
+                <div class="headline" id="headline">Initializing...</div>
+                <div class="summary" id="summary"></div>
+                <div class="actions">
+                    <button class="btn-skip" id="btn-skip">BANISH</button>
+                    <button id="btn-pin">PIN</button> 
+                    <button class="btn-read" id="btn-read">READ</button>
                 </div>
             </div>
 
-            <button id="close-shop">CLOSE CATALOG</button>
-        </div>
-    </div>
-
-    <div id="shredder-unit" class="shredder">
-    <div class="shredder-top">
-        <div class="shredder-slot"></div>
-    </div>
-    <div class="shredder-body">
-        <div class="shredder-label">SHRED-O-MATIC</div>
-        <div class="charge-bar-container">
-            <div id="shredder-bar" class="charge-bar-fill" style="width: 0%;"></div>
-        </div>
-        <button id="btn-shred" disabled>SHRED (0%)</button>
-    </div>
-</div>
-
-    <div class="game-area">
-        
-        <div class="card" id="card-container">
-            <div class="source-tag" id="source">LOADING...</div>
-            
-            <div class="byline" id="byline"></div> 
-
-            <div class="headline" id="headline">Initializing...</div>
-            <div class="summary" id="summary"></div>
-            
-            
-            <div class="actions">
-                <button class="btn-skip" id="btn-skip">BANISH</button>
-                <button id="btn-pin">PIN</button> 
-                <button class="btn-read" id="btn-read">READ</button>
-            </div>
-        </div>
-
-        <div id="win-screen">
-            <div class="summary-paper">
-                <h1 class="win-title">SHIFT ENDED</h1>
-                <div class="summary-line">RANK: <b>INTERN</b></div>
-                <hr>
-                <div class="summary-stats">
-                    <div class="stat">LOADING RESULTS...</div>
+            <div id="win-screen">
+                <div class="summary-paper">
+                    <h1 class="win-title">SHIFT ENDED</h1>
+                    <div class="summary-line">RANK: <b>INTERN</b></div>
+                    <hr>
+                    <div class="summary-stats">
+                        <div class="stat">LOADING RESULTS...</div>
+                    </div>
+                    <button onclick="location.reload()" class="stamp-button" style="margin-top:20px;">START NEW SHIFT</button>
                 </div>
-                <button onclick="location.reload()" class="stamp-button" style="margin-top:20px;">START NEW SHIFT</button>
+            </div>
+
+            <div id="pinned-container" style="display: none;">
+                SAVED: <span id="pinned-title"></span>
             </div>
         </div>
 
-        <div id="pinned-container" style="display: none;">
-            SAVED: <span id="pinned-title"></span>
-        </div>
-    </div>
-    <div id="tutorial-modal" class="modal-overlay hidden">
-    <div class="memo-paper">
-        <div class="memo-header">
-            <span style="border-bottom: 2px solid #000;">DAILY HAND: INTERNAL MEMO</span>
-            <span style="color: #c0392b; font-weight: bold;">MANDATORY</span>
-        </div>
-        
-        <h2 style="text-align: center; margin: 15px 0; font-family: 'Courier New', Courier, monospace;">WELCOME TO THE DESK</h2>
-        
-        <div class="memo-grid">
-            <div class="memo-item">
-                <strong>❤️ SANITY IS LIFE</strong>
-                <span>If this hits 0, you are terminated immediately.</span>
-            </div>
-            <div class="memo-item">
-                <strong>🗑️ BANISHMENT COSTS 1 ❤️</strong>
-                <span>Skipping boring news hurts your focus. Use it wisely.</span>
-            </div>
-            <div class="memo-item">
-                <strong>⚙️ THE SHREDDER</strong>
-                <span>Read to charge the unit. Use it to destroy a card for 0 Cost.</span>
-            </div>
-            <div class="memo-item">
-                <strong>⚠️ WATCH FOR TRAPS</strong>
-                <span>Clickbait drains sanity if Read. Banish it for free.</span>
+        <div id="tutorial-modal" class="modal-overlay hidden">
+            <div class="memo-paper">
+                <div class="memo-header">
+                    <span style="border-bottom: 2px solid #000;">DAILY HAND: INTERNAL MEMO</span>
+                    <span style="color: #c0392b; font-weight: bold;">MANDATORY</span>
+                </div>
+                <h2 style="text-align: center; margin: 15px 0; font-family: 'Courier New', Courier, monospace;">WELCOME TO THE DESK</h2>
+                <div class="memo-grid">
+                    <div class="memo-item">
+                        <strong>❤️ SANITY IS LIFE</strong>
+                        <span>If this hits 0, you are terminated immediately.</span>
+                    </div>
+                    <div class="memo-item">
+                        <strong>🗑️ BANISHMENT COSTS 1 ❤️</strong>
+                        <span>Skipping boring news hurts your focus. Use it wisely.</span>
+                    </div>
+                    <div class="memo-item">
+                        <strong>⚙️ THE SHREDDER</strong>
+                        <span>Read to charge the unit. Use it to destroy a card for 0 Cost.</span>
+                    </div>
+                    <div class="memo-item">
+                        <strong>⚠️ WATCH FOR TRAPS</strong>
+                        <span>Clickbait drains sanity if Read. Banish it for free.</span>
+                    </div>
+                </div>
+                <button id="btn-close-tutorial" class="stamp-button">ACKNOWLEDGE & BEGIN</button>
             </div>
         </div>
 
-        <button id="btn-close-tutorial" class="stamp-button">ACKNOWLEDGE & BEGIN</button>
-    </div>
-</div>
-
-    <script src="script.js"></script>
+    </div> <script src="script.js"></script>
 </body>
 </html>

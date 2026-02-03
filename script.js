@@ -9,6 +9,19 @@ const STATIONS = [
     { name: "WIRED", url: "https://www.wired.com/feed/rss" }
 ];
 
+const OFFLINE_NEWS = [
+    { title: "AI Writes Best-Selling Novel", desc: "Critics are outraged as a chatbot wins the Pulitzer Prize for its novel 'The Electric Sheep'." },
+    { title: "Coffee Prices Skyrocket", desc: "A global bean shortage has driven the price of a latte to $15. Office productivity plummets." },
+    { title: "Mars Colony Delays", desc: "The first manned mission to Mars has been postponed due to a shortage of freeze-dried ice cream." },
+    { title: "Retro Tech is Back", desc: "Gen Z is ditching smartphones for pagers and fax machines in a new 'unplugged' trend." },
+    { title: "Flying Cars? Not Yet.", desc: "The highly anticipated flying car prototype crashed into a billboard during its debut flight." },
+    { title: "Cat Elected Mayor", desc: "A small town in Alaska has re-elected 'Mr. Whiskers' for a third term. Approval ratings are high." },
+    { title: "The End of Passwords", desc: "Biometric security is taking over. Soon you will need a retinal scan to open your fridge." },
+    { title: "Virtual Reality Vacations", desc: "Why travel? New VR headsets offer 4K smells and weather simulation for a fraction of the cost." },
+    { title: "Crypto Crash", desc: "The latest meme coin has lost 99% of its value overnight. Investors are baffled." },
+    { title: "Smart Fridges Attack", desc: "A firmware update caused smart fridges to lock their doors, refusing to open until users diet." }
+];
+
 let state = {
     deck: [],
     lives: STARTING_LIVES,
@@ -92,12 +105,11 @@ function showFeedback(text, color, isPositive = true) {
     setTimeout(() => feedback.remove(), 1000);
 }
 
-// Helper: Makes buttons respond instantly on touch screens
 function bindInteraction(elementId, callback) {
     const el = document.getElementById(elementId);
     if (!el) return;
     const action = (e) => {
-        if (e.type === 'touchstart') e.preventDefault(); // Stop double-firing
+        if (e.type === 'touchstart') e.preventDefault();
         callback();
     };
     el.addEventListener('click', action);
@@ -105,25 +117,38 @@ function bindInteraction(elementId, callback) {
 }
 
 // ==========================================
-// 4. STORAGE & INITIALIZATION
+// 4. STORAGE & LIFECYCLE (THE FIX)
 // ==========================================
 function saveState() {
     localStorage.setItem('gameState', JSON.stringify(state));
 }
 
-function resetGameState() {
+// Called when player Dies (0 Hearts)
+function triggerDeath() {
+    // Keep High Score, Wipe everything else
+    const highScore = localStorage.getItem('highScore');
+    localStorage.clear();
+    if(highScore) localStorage.setItem('highScore', highScore);
+    location.reload();
+}
+
+// Called when player finishes the deck (Success)
+function triggerNextDay() {
+    // Reset Fatigue (Lives) and Counters, Keep XP and Items
     state.lives = state.inventory.includes('mug') ? STARTING_LIVES + 1 : STARTING_LIVES;
     state.articlesRead = 0;
-    state.xp = 0;
     state.combo = 0;
     state.shredderCharge = 0;
     state.isGameOver = false;
+    state.deck = []; // Clear deck to force reload
+    state.goalReached = false;
+    
     saveState();
+    location.reload();
 }
 
 async function init() {
     try {
-        // 1. Mobile Safe Load
         const savedData = localStorage.getItem('gameState');
         const highScoreData = localStorage.getItem('highScore');
 
@@ -132,25 +157,23 @@ async function init() {
             state.xp = parsed.xp || 0;
             state.inventory = parsed.inventory || [];
             state.stationIndex = parsed.stationIndex || 0;
+            // Lives reset on reload to prevent cheese, or load them if you prefer persistence mid-run
+            state.lives = state.inventory.includes('mug') ? STARTING_LIVES + 1 : STARTING_LIVES; 
         }
         state.highScore = highScoreData ? parseInt(highScoreData) : 0;
         
-        // 2. Setup UI
         setupShop();
         setupDevTools();
         setupButtons();
         setupRadio();
-        
-        // 3. Trigger Tutorial (Crucial: Run before network fetch)
         checkTutorial(); 
 
-        // 4. Update Goal
+        // Difficulty scaling based on total XP
         const difficultyMultiplier = Math.floor(state.xp / 2000);
         state.goalTarget = 5 + (difficultyMultiplier * 3);
         const goalText = document.getElementById('goal-text');
         if (goalText) goalText.innerText = `READ ${state.goalTarget} ARTICLES`;
 
-        // 5. Start Game
         await startNewRun();
 
     } catch (err) {
@@ -168,11 +191,14 @@ async function startNewRun() {
     const radioLabel = document.getElementById('radio-label');
     if (radioLabel) radioLabel.innerText = currentStation.name;
 
+    state.deck = []; 
+    render(); // This forces the "Clocking In..." loading screen to appear
+
     try {
-        // CORS Proxy for Mobile Web
         const proxyUrl = "https://api.allorigins.win/raw?url=";
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
         const res = await fetch(proxyUrl + encodeURIComponent(currentStation.url));
-        
         if (!res.ok) throw new Error("Network Error");
         
         const text = await res.text();
@@ -198,23 +224,79 @@ async function startNewRun() {
             const descNode = item.querySelector("description");
             const linkNode = item.querySelector("link");
 
+            let rawSummary = descNode ? descNode.textContent : "";
+            let cleanSummary = rawSummary.replace(/<[^>]*>?/gm, '').trim();
+            if (cleanSummary.length < 5) cleanSummary = "Click READ to view the full story...";
+            else cleanSummary = cleanSummary.substring(0, 150) + "...";
+
             return {
                 title: titleNode ? titleNode.textContent : "Unknown Title",
-                summary: descNode ? descNode.textContent.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..." : "No summary.",
+                summary: cleanSummary,
                 link: linkNode ? linkNode.textContent : "#",
                 source: currentStation.name,
                 trait, traitLabel
             };
         });
 
+        // Reset game over state just in case
+        state.isGameOver = false;
         saveState();
-        render(); // Clear "Initializing..."
+        render(); 
 
     } catch (e) {
-        console.error(e);
-        document.getElementById('headline').innerText = "SIGNAL LOST";
-        document.getElementById('summary').innerText = "Could not fetch news. Check internet connection.";
+        console.log("Signal Lost! Switching to Backup Disk...");
+        const backupItems = [...OFFLINE_NEWS, ...OFFLINE_NEWS, ...OFFLINE_NEWS].sort(() => 0.5 - Math.random());
+        generateDeck(backupItems, "BACKUP DISK", true);
     }
+}
+
+function generateDeck(items, sourceName, isOffline) {
+    state.deck = items.map(item => {
+        const rand = Math.random();
+        let trait = 'standard';
+        let traitLabel = 'MORNING REPORT';
+        
+        if (rand < 0.05) { trait = 'coffee'; traitLabel = 'FRESH BREW'; }
+        else if (rand < 0.20) { trait = 'breaking'; traitLabel = 'BREAKING'; }
+        else if (rand < 0.40) { trait = 'trending'; traitLabel = 'TRENDING'; }
+        else if (rand < 0.50) { trait = 'clickbait'; traitLabel = 'CLICKBAIT'; }
+        else if (rand < 0.60) { trait = 'premium'; traitLabel = 'PREMIUM'; }
+
+        let title, summary, link;
+
+        if (isOffline) {
+            // Mapping for Offline Data
+            title = item.title;
+            summary = item.desc;
+            link = "#";
+        } else {
+            // Mapping for XML Data
+            const titleNode = item.querySelector("title");
+            const descNode = item.querySelector("description");
+            const linkNode = item.querySelector("link");
+
+            title = titleNode ? titleNode.textContent : "Unknown Title";
+            // Clean HTML tags out of summary
+            summary = descNode ? descNode.textContent.replace(/<[^>]*>?/gm, '').trim() : "";
+            link = linkNode ? linkNode.textContent : "#";
+        }
+
+        if (summary.length < 5) summary = "Click READ to view the full story...";
+        else summary = summary.substring(0, 150) + "...";
+
+        return {
+            title: title,
+            summary: summary,
+            link: link,
+            source: sourceName,
+            trait: trait,
+            traitLabel: traitLabel
+        };
+    });
+
+    state.isGameOver = false;
+    saveState();
+    render();
 }
 
 // ==========================================
@@ -239,10 +321,18 @@ function setupButtons() {
         setTimeout(() => {
             if (!isFreeSkip) state.lives--; 
             state.combo = 0; 
-            state.deck.shift();
-            if (state.lives <= 0) gameOver();
-            else render();
-        }, 500);
+            state.deck.shift(); // Remove card
+            
+            // CHECK LIFE OR DEATH
+            if (state.lives <= 0) {
+                gameOver();
+            } else if (state.deck.length === 0) {
+                // Deck finished!
+                gameOver();
+            } else {
+                render();
+            }
+        }, 300);
     });
 
     // READ
@@ -278,17 +368,21 @@ function setupButtons() {
             state.xp -= cost;
         }
 
-        // Logic
+        // Stats Logic
+        // --- UPDATED XP LOGIC (Harder Economy) ---
         state.articlesRead++;
         state.combo++;
         state.shredderCharge = Math.min(100, state.shredderCharge + 20);
 
-        let xpGain = 10 * (1 + (state.combo * 0.1)); 
+        // 1. Lower Base XP from 10 to 3
+        // 2. Lower Combo Multiplier from 0.1 (10%) to 0.05 (5%)
+        let xpGain = 3 * (1 + (state.combo * 0.05)); 
+        
         if (card.trait === 'trending' || card.trait === 'premium') xpGain *= 2; 
-        if (state.inventory.includes('pen') && card.trait === 'trending') xpGain += 15;
+        if (state.inventory.includes('pen') && card.trait === 'trending') xpGain += 5; // Reduced pen bonus from 15 to 5
 
         state.lives = Math.min(state.lives, 5);
-        state.xp += Math.floor(xpGain);
+        state.xp += Math.max(1, Math.floor(xpGain)); // Ensure at least 1 XP
 
         // Daily Quota
         if (!state.goalReached) {
@@ -298,7 +392,10 @@ function setupButtons() {
 
             if (state.articlesRead >= state.goalTarget) {
                 state.goalReached = true;
-                const bonus = 500 + (Math.floor(state.xp / 2000) * 250);
+                
+                // NERFED BONUS: Reduced base from 500 to 100
+                const bonus = 100 + (Math.floor(state.xp / 2000) * 50);
+                
                 state.xp += bonus;
                 showFeedback(`QUOTA MET! +${bonus} XP`, "#2980b9", true);
                 playSound('good');
@@ -309,12 +406,20 @@ function setupButtons() {
                 if (txt) txt.innerText = "QUOTA COMPLETE ✓";
             }
         }
+        // --- END UPDATED LOGIC ---
 
         playSound('deal'); 
         const link = card.link;
-        state.deck.shift();
+        state.deck.shift(); // Remove card
         saveState();
-        render();
+        
+        // CHECK COMPLETION
+        if (state.deck.length === 0) {
+            gameOver(); // Success!
+        } else {
+            render();
+        }
+        
         window.open(link, '_blank'); 
     });
 
@@ -327,9 +432,13 @@ function setupButtons() {
         setTimeout(() => {
             state.pinnedArticle = state.deck[0];
             state.deck.shift();
-            saveState();
-            render();
-        }, 500);
+            
+            if (state.deck.length === 0) gameOver();
+            else {
+                saveState();
+                render();
+            }
+        }, 300);
     });
 
     // SHREDDER
@@ -341,9 +450,13 @@ function setupButtons() {
         setTimeout(() => {
             state.shredderCharge = 0; 
             state.deck.shift(); 
-            saveState();
-            render();
-        }, 500);
+            
+            if (state.deck.length === 0) gameOver();
+            else {
+                saveState();
+                render();
+            }
+        }, 300);
     });
 }
 
@@ -351,12 +464,8 @@ function setupRadio() {
     const knob = document.getElementById('radio-knob');
     if (knob) {
         knob.onclick = () => {
-            // Stop if empty
             if (state.deck.length === 0 || state.isGameOver) {
                 playSound('bad');
-                const label = document.getElementById('radio-label');
-                label.innerText = "SIGNAL DEAD";
-                label.style.color = "#d63031";
                 return; 
             }
 
@@ -364,11 +473,10 @@ function setupRadio() {
             if (state.xp < cost) {
                 playSound('bad');
                 const label = document.getElementById('radio-label');
-                const originalText = label.innerText;
-                label.innerText = "LOCKED (NEED 25 XP)";
+                label.innerText = "LOCKED (25 XP)";
                 label.style.color = "#d63031";
                 setTimeout(() => {
-                    label.innerText = originalText;
+                    label.innerText = STATIONS[state.stationIndex].name;
                     label.style.color = "";
                 }, 1000);
                 return;
@@ -383,7 +491,7 @@ function setupRadio() {
             knob.style.transform = `rotate(${state.stationIndex * 45}deg)`;
             
             const label = document.getElementById('radio-label');
-            label.innerText = `TUNING... (-${cost} XP)`;
+            label.innerText = "TUNING...";
             label.style.color = "#d63031"; 
 
             setTimeout(() => {
@@ -405,12 +513,15 @@ function setupShop() {
     const closeBtn = document.getElementById('close-shop');
     const xpDisplay = document.getElementById('shop-xp');
 
-    if(catalog) catalog.onclick = () => {
-        playSound('click');
-        modal.classList.remove('hidden');
-        if(xpDisplay) xpDisplay.innerText = state.xp;
-        updateShopButtons();
-    };
+    if(catalog) {
+        catalog.onclick = () => {
+            if (state.isGameOver) return; 
+            playSound('click');
+            modal.classList.remove('hidden');
+            if(xpDisplay) xpDisplay.innerText = state.xp;
+            updateShopButtons();
+        };
+    }
 
     if(closeBtn) closeBtn.onclick = () => {
         modal.classList.add('hidden');
@@ -428,8 +539,7 @@ function setupShop() {
                 saveState();
                 updateShopButtons();
                 if(xpDisplay) xpDisplay.innerText = state.xp;
-                alert("ITEM ACQUIRED! Effect active on next run.");
-            } else if (state.xp < cost) {
+            } else {
                 playSound('bad');
             }
         };
@@ -459,7 +569,7 @@ function setupDevTools() {
     if (devBtn) {
         devBtn.onclick = () => {
             playSound('bad');
-            if (confirm("⚠ SYSTEM RESET ⚠\n\nWipe all data?")) {
+            if (confirm("⚠ SYSTEM RESET ⚠\nWipe all data?")) {
                 localStorage.clear();
                 location.reload();
             }
@@ -468,7 +578,7 @@ function setupDevTools() {
 }
 
 // ==========================================
-// 8. TUTORIAL (ROBUST FIX)
+// 8. TUTORIAL
 // ==========================================
 function checkTutorial() {
     const tutorialSeen = localStorage.getItem('tutorialSeen');
@@ -479,26 +589,18 @@ function checkTutorial() {
 
     if (!tutorialSeen) {
         modal.classList.remove('hidden');
-        modal.style.display = 'flex'; // Force visible
-
+        modal.style.display = 'flex';
         const closeAction = (e) => {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+            if (e) { e.preventDefault(); e.stopPropagation(); }
             modal.style.display = 'none';
             modal.classList.add('hidden');
             localStorage.setItem('tutorialSeen', 'true');
             try { playSound('thud'); } catch(err) {}
         };
-
-        // Replace button to clear old listeners
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
-
         newBtn.addEventListener('click', closeAction);
         newBtn.addEventListener('touchstart', closeAction, { passive: false }); 
-        
     } else {
         modal.style.display = 'none';
         modal.classList.add('hidden');
@@ -506,53 +608,50 @@ function checkTutorial() {
 }
 
 // ==========================================
-// 9. GAME OVER & RENDER
+// 9. GAME OVER & RENDER (The Lifecycle Logic)
 // ==========================================
 async function gameOver() {
     state.isGameOver = true;
-    playSound('bad');
+    playSound(state.lives <= 0 ? 'bad' : 'good');
     
     const previousBest = parseInt(localStorage.getItem('highScore')) || 0;
     const isNewRecord = state.xp > previousBest;
+    if (isNewRecord) localStorage.setItem('highScore', state.xp.toString());
 
-    if (isNewRecord) {
-        localStorage.setItem('highScore', state.xp.toString());
-    }
+    // --- DETERMINE OUTCOME ---
+    const isDeath = state.lives <= 0;
+    const nextFunction = isDeath ? "triggerDeath()" : "triggerNextDay()";
+    const buttonText = isDeath ? "TRY AGAIN (LOSE XP)" : "START NEXT SHIFT";
+    const title = isDeath ? "⚠️ TERMINATED" : "🏁 SHIFT COMPLETE";
+    const titleColor = isDeath ? "#d63031" : "#27ae60";
 
     const winScreen = document.getElementById('win-screen');
     const cardContainer = document.getElementById('card-container');
-    
-    if (cardContainer) cardContainer.style.display = 'none';
-    if (winScreen) {
-        winScreen.style.display = 'block';
+    const rankEl = document.getElementById('player-rank');
+    const currentRank = rankEl ? rankEl.innerText : "INTERN";
 
-        const title = state.lives <= 0 ? "⚠️ TERMINATED" : "🏁 SHIFT COMPLETE";
-        const rankEl = document.getElementById('player-rank');
-        const currentRank = rankEl ? rankEl.innerText : "INTERN";
+    if (cardContainer) cardContainer.style.display = 'none';
+    
+    if (winScreen) {
+        winScreen.style.display = 'flex'; 
+        winScreen.classList.remove('hidden');
 
         winScreen.innerHTML = `
             <div class="summary-paper">
-                <h1 class="win-title">${title}</h1>
+                <h1 class="win-title" style="color: ${titleColor}">${title}</h1>
                 ${isNewRecord ? '<div style="color:#27ae60; font-weight:bold; margin-bottom:10px;">⭐ NEW PERSONAL BEST! ⭐</div>' : ''}
+                
                 <div class="summary-line">RANK: <b>${currentRank}</b></div>
+                
                 <div class="summary-stats">
-                    <div class="stat">XP EARNED: <b>${state.xp}</b></div>
-                    <div class="stat">PERSONAL BEST: <b>${isNewRecord ? state.xp : previousBest}</b></div>
-                    <div class="stat">ARTICLES READ: <b>${state.articlesRead}</b></div>
+                    <div class="stat">TOTAL XP: <b>${state.xp}</b></div>
+                    <div class="stat">ARTICLES FILED: <b>${state.articlesRead}</b></div>
+                    ${!isDeath ? '<div class="stat" style="color:#27ae60;">Inventory Saved ✓</div>' : ''}
                 </div>
-                <button id="restart-shift-btn" class="stamp-button" style="margin-top:20px;">START NEW SHIFT</button>
+
+                <button onclick="${nextFunction}" class="stamp-button" style="margin-top:20px;">${buttonText}</button>
             </div>
         `;
-
-        // Bind reset button
-        const resetBtn = document.getElementById('restart-shift-btn');
-        const resetAction = (e) => {
-             if(e) e.preventDefault();
-             resetGameState();
-             location.reload(); 
-        };
-        resetBtn.addEventListener('click', resetAction);
-        resetBtn.addEventListener('touchstart', resetAction);
     }
 }
 
@@ -561,48 +660,67 @@ function render() {
     const winScreen = document.getElementById('win-screen');
     const sourceTag = document.getElementById('source');
     
-    // UI Elements
     const skipBtn = document.getElementById('btn-skip');
     const readBtn = document.getElementById('btn-read');
     const pinBtn = document.getElementById('btn-pin');
     const shredBtn = document.getElementById('btn-shred');
     const shredBar = document.getElementById('shredder-bar');
 
-    // Atmosphere
     document.body.className = `sanity-${Math.max(1, Math.min(3, state.lives))}`;
 
-    // HUD
     let lifeStr = "";
     for(let i=0; i<state.lives; i++) lifeStr += "❤️ ";
     document.getElementById('skip-tokens').innerText = lifeStr || "DEAD";
     document.getElementById('xp-count').innerHTML = `${state.xp} XP <br> READ: ${state.articlesRead}`;
 
-    if (state.isGameOver || state.deck.length === 0) {
+    // --- GAME OVER CHECK ---
+    if (state.isGameOver) {
         cardContainer.style.display = 'none';
-        winScreen.style.display = 'block';
-        if (!state.isGameOver) gameOver(); // Handle empty deck finish
-        return;
+        winScreen.style.display = 'flex';
+        winScreen.classList.remove('hidden');
+        return; 
     } else {
-        cardContainer.style.display = 'flex';
         winScreen.style.display = 'none';
+        winScreen.classList.add('hidden');
+        
+        // --- LOADING CHECK ---
+        // If deck is empty but we are NOT in Game Over, it means we are loading.
+        if (state.deck.length === 0) {
+            document.getElementById('headline').innerText = "CLOCKING IN...";
+            document.getElementById('summary').innerText = "Fetching reports. Please wait...";
+            document.getElementById('byline').innerText = "SYSTEM BUSY";
+            sourceTag.style.opacity = "0";
+            
+            skipBtn.disabled = true;
+            readBtn.disabled = true;
+            pinBtn.disabled = true;
+            cardContainer.style.display = 'flex';
+            return;
+        }
+        cardContainer.style.display = 'flex';
     }
 
     const card = state.deck[0];
+    
+    // Reset animation
     cardContainer.className = "card"; 
-    void cardContainer.offsetWidth; // Trigger reflow
+    void cardContainer.offsetWidth; 
     cardContainer.classList.add('anim-deal'); 
     
     document.getElementById('headline').innerText = card.title;
     document.getElementById('summary').innerText = card.summary;
     document.getElementById('byline').innerText = "SOURCE: " + card.source;
 
-    // Traits
     sourceTag.className = "source-tag"; 
     sourceTag.style = ""; 
     sourceTag.innerText = card.traitLabel; 
+    sourceTag.style.opacity = "1";
     if (card.trait !== 'standard') sourceTag.classList.add('anim-stamp');
 
-    // Mobile Text Updates
+    skipBtn.disabled = false;
+    readBtn.disabled = false;
+    pinBtn.disabled = false;
+
     if (card.trait === 'clickbait') {
         skipBtn.innerText = "BANISH (SAFE)";
         skipBtn.style.color = "#00b894";
@@ -648,7 +766,6 @@ function render() {
     }
     pinBtn.innerText = "PIN (FREE)";
 
-    // Rank
     const rankEl = document.getElementById('player-rank');
     if (rankEl) {
         let title = "UNPAID INTERN";
@@ -659,7 +776,6 @@ function render() {
         rankEl.innerText = title;
     }
 
-    // Shredder
     if (shredBar && shredBtn) {
         shredBar.style.width = `${state.shredderCharge}%`;
         if (state.shredderCharge >= 100) {
@@ -675,7 +791,6 @@ function render() {
         }
     }
 
-    // Notepad & Folder
     document.getElementById('deck-count').innerText = state.deck.length;
     document.getElementById('combo-display').innerText = "x" + (1 + (state.combo*0.1)).toFixed(1);
 
