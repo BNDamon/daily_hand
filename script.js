@@ -1,7 +1,6 @@
 // ==========================================
 // 1. CONFIGURATION & STATE
 // ==========================================
-import { StatusBar } from '@capacitor/status-bar';
 const STARTING_LIVES = 3;
 
 const STATIONS = [
@@ -153,7 +152,8 @@ async function hideStatusBar() {
 };
 
 async function init() {
-    await hideStatusBar();
+    // REMOVED: await hideStatusBar(); (Not needed for PWA, handled by manifest)
+
     try {
         const savedData = localStorage.getItem('gameState');
         const highScoreData = localStorage.getItem('highScore');
@@ -163,10 +163,14 @@ async function init() {
             state.xp = parsed.xp || 0;
             state.inventory = parsed.inventory || [];
             state.stationIndex = parsed.stationIndex || 0;
-            // Lives reset on reload to prevent cheese, or load them if you prefer persistence mid-run
+            // Lives reset on reload to prevent cheese
             state.lives = state.inventory.includes('mug') ? STARTING_LIVES + 1 : STARTING_LIVES; 
         }
         state.highScore = highScoreData ? parseInt(highScoreData) : 0;
+        
+        // --- THE FIX: FORCE GAME OVER TO FALSE ON BOOT ---
+        state.isGameOver = false; 
+        state.deck = []; // Ensure deck starts empty so we can load fresh news
         
         setupShop();
         setupDevTools();
@@ -174,7 +178,7 @@ async function init() {
         setupRadio();
         checkTutorial(); 
 
-        // Difficulty scaling based on total XP
+        // Difficulty scaling
         const difficultyMultiplier = Math.floor(state.xp / 2000);
         state.goalTarget = 5 + (difficultyMultiplier * 3);
         const goalText = document.getElementById('goal-text');
