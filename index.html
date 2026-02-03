@@ -17,13 +17,6 @@
         --safe-top: env(safe-area-inset-top, 20px);
     }
 
-    #app-frame {
-    padding-top: var(--safe-top);
-    height: 100dvh; /* Dynamic viewport height to fill the screen */
-    display: flex;
-    flex-direction: column;
-    }
-
     body {
         background-color: var(--desk);
         /* BACKGROUND EXTENDS INFINITELY HERE */
@@ -47,18 +40,27 @@
         -webkit-touch-callout: none;
     }
 
-    /* --- THE LOCK --- */
-    /* This forces the game layout to stay "Mobile Sized" in the center */
     #app-frame {
         position: relative;
         width: 100%;
-        max-width: 600px; /* Locked to 600px */
-        height: 100%;
-        max-height: 100vh;
+        max-width: 600px; /* Keeps it phone-shaped on desktop */
+        
+        /* THE FIX: Use dvh (Dynamic Viewport Height) */
+        height: 100dvh; 
+        max-height: 100dvh;
+        
+        /* Ensure padding doesn't increase the total height */
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 10px);
+        padding-bottom: env(safe-area-inset-bottom, 10px);
+        
         overflow: hidden;
-        /* Optional shadow to separate game from infinite desk */
+        display: flex;
+        flex-direction: column;
+        
+        /* Optional shadow */
         box-shadow: 0 0 50px rgba(0,0,0,0.1); 
-    }
+    }   
 
     /* --- UI ELEMENTS (Using your Mobile Positioning as Default) --- */
     
