@@ -183,22 +183,22 @@ async function init() {
     }
 }
 
-// ==========================================
-// 5. NETWORK & DECK LOGIC
-// ==========================================
 async function startNewRun() {
     const currentStation = STATIONS[state.stationIndex];
     const radioLabel = document.getElementById('radio-label');
     if (radioLabel) radioLabel.innerText = currentStation.name;
 
+    // 1. Clear the old deck so we don't see "Ghost Cards"
     state.deck = []; 
-    render(); // This forces the "Clocking In..." loading screen to appear
+    try { render(); } catch(e) {} // Force "Clocking In" screen
 
     try {
         const proxyUrl = "https://api.allorigins.win/raw?url=";
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        // --- I REMOVED THE TIMEOUT HERE ---
+        // Now it will wait until the news actually loads, no matter how long it takes.
         const res = await fetch(proxyUrl + encodeURIComponent(currentStation.url));
+        
         if (!res.ok) throw new Error("Network Error");
         
         const text = await res.text();
@@ -207,45 +207,14 @@ async function startNewRun() {
         
         if (items.length === 0) throw new Error("Feed Empty");
 
+        // SUCCESS: Real News found
         const rawItems = items.sort(() => 0.5 - Math.random()).slice(0, 30); 
-
-        state.deck = rawItems.map(item => {
-            const rand = Math.random();
-            let trait = 'standard';
-            let traitLabel = 'MORNING REPORT';
-            
-            if (rand < 0.05) { trait = 'coffee'; traitLabel = 'FRESH BREW'; }
-            else if (rand < 0.20) { trait = 'breaking'; traitLabel = 'BREAKING'; }
-            else if (rand < 0.40) { trait = 'trending'; traitLabel = 'TRENDING'; }
-            else if (rand < 0.50) { trait = 'clickbait'; traitLabel = 'CLICKBAIT'; }
-            else if (rand < 0.60) { trait = 'premium'; traitLabel = 'PREMIUM'; }
-
-            const titleNode = item.querySelector("title");
-            const descNode = item.querySelector("description");
-            const linkNode = item.querySelector("link");
-
-            let rawSummary = descNode ? descNode.textContent : "";
-            let cleanSummary = rawSummary.replace(/<[^>]*>?/gm, '').trim();
-            if (cleanSummary.length < 5) cleanSummary = "Click READ to view the full story...";
-            else cleanSummary = cleanSummary.substring(0, 150) + "...";
-
-            return {
-                title: titleNode ? titleNode.textContent : "Unknown Title",
-                summary: cleanSummary,
-                link: linkNode ? linkNode.textContent : "#",
-                source: currentStation.name,
-                trait, traitLabel
-            };
-        });
-
-        // Reset game over state just in case
-        state.isGameOver = false;
-        saveState();
-        render(); 
+        generateDeck(rawItems, currentStation.name, false);
 
     } catch (e) {
         console.log("Signal Lost! Switching to Backup Disk...");
-        const backupItems = [...OFFLINE_NEWS, ...OFFLINE_NEWS, ...OFFLINE_NEWS].sort(() => 0.5 - Math.random());
+        // Only load backup if it truly fails
+        const backupItems = [...OFFLINE_NEWS, ...OFFLINE_NEWS, ...OFFLINE_NEWS].slice(0, 30);
         generateDeck(backupItems, "BACKUP DISK", true);
     }
 }
@@ -265,29 +234,35 @@ function generateDeck(items, sourceName, isOffline) {
         let title, summary, link;
 
         if (isOffline) {
-            // Mapping for Offline Data
             title = item.title;
             summary = item.desc;
-            link = "#";
+            link = ""; // Offline news has no link
         } else {
-            // Mapping for XML Data
+            // --- ROBUST XML PARSING ---
             const titleNode = item.querySelector("title");
             const descNode = item.querySelector("description");
+            
+            // This is the logic that works best for RSS feeds
             const linkNode = item.querySelector("link");
+            let url = linkNode ? linkNode.textContent.trim() : "";
+            
+            // Backup: sometimes the link is in the 'nextSibling' if the parser gets confused
+            if (!url && linkNode && linkNode.nextSibling) {
+                url = linkNode.nextSibling.textContent.trim();
+            }
 
             title = titleNode ? titleNode.textContent : "Unknown Title";
-            // Clean HTML tags out of summary
             summary = descNode ? descNode.textContent.replace(/<[^>]*>?/gm, '').trim() : "";
-            link = linkNode ? linkNode.textContent : "#";
+            link = url;
         }
 
-        if (summary.length < 5) summary = "Click READ to view the full story...";
+        if (!summary || summary.length < 5) summary = "Click READ to view story...";
         else summary = summary.substring(0, 150) + "...";
 
         return {
             title: title,
             summary: summary,
-            link: link,
+            link: link || "#", // Fallback to # if absolutely nothing found
             source: sourceName,
             trait: trait,
             traitLabel: traitLabel
